@@ -1,0 +1,120 @@
+2024-11-27 23:50:50,310 - INFO - Attempting to establish SSH connection for devx.
+2024-11-27 23:50:52,852 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-27 23:56:44,345 - INFO - Attempting to establish SSH connection for devx.
+2024-11-27 23:56:47,036 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-27 23:59:23,402 - INFO - Attempting to establish SSH connection for devx.
+2024-11-27 23:59:25,777 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-28 00:03:57,644 - INFO - Attempting to establish SSH connection for devx.
+2024-11-28 00:04:00,228 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-28 00:05:28,355 - INFO - Attempting to establish SSH connection for devx.
+2024-11-28 00:05:30,702 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-28 00:09:43,767 - INFO - Attempting to establish SSH connection for devx.
+2024-11-28 00:09:46,053 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-28 00:12:44,079 - INFO - Attempting to establish SSH connection for devx.
+2024-11-28 00:12:46,604 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
+2024-11-28 00:14:08,488 - INFO - Attempting to establish SSH connection for devx.
+2024-11-28 00:14:10,865 - ERROR - SSH connection errors for Devx: /Users/shaliniolivera/.ssh/config: line 6: Bad configuration option: usekeychain
+/Users/shaliniolivera/.ssh/config: terminating, 1 bad configuration options
+
+Recommendation: To check for possible causes of SSH connectivity issues and get
+recommendations, rerun the ssh command with the --troubleshoot option.
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot
+
+Or, to investigate an IAP tunneling issue:
+
+gcloud compute ssh bastion-01 --project=tcc-sn-dev --zone=asia-southeast1-a --troubleshoot --tunnel-through-iap
+
+ERROR: (gcloud.compute.ssh) [/opt/homebrew/bin/ssh] exited with return code [255].
+
