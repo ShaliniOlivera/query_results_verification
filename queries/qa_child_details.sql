@@ -1,4 +1,4 @@
--- child profile until classes
+-- Child profile until classes with correct active child_level and child_class selection
 SELECT 
     ch.id, 
     ch.firstname AS child_firstname, 
@@ -11,7 +11,7 @@ SELECT
     ch.image_key AS profile_photo_storage_path, 
     cl.`from` AS current_level_enrolment_date, 
     ce.code AS current_centre_code, 
-    le.label AS current_level, 
+    le.code AS current_level, 
     pr.code AS current_program, 
     ccla.`from` AS current_class_enrolment_date, 
     cla.id AS current_class_id, 
@@ -33,18 +33,41 @@ LEFT JOIN `child_class` ccla
         FROM child_class ccla2
         WHERE ccla2.fk_child = ch.id
         AND ccla2.active = 1
-        AND (ccla2.`to` >= CURRENT_DATE OR ccla2.`to` IS NULL)
+        -- Prioritize records where ccla2.to > CURRENT_DATE
+        AND (
+            ccla2.to > CURRENT_DATE
+            OR (
+                ccla2.to IS NULL 
+                AND NOT EXISTS (
+                    SELECT 1 FROM child_class ccla3 
+                    WHERE ccla3.fk_child = ch.id 
+                    AND ccla3.active = 1 
+                    AND ccla3.to > CURRENT_DATE
+                )
+            )
+        )
     )
 LEFT JOIN `class` cla 
     ON cla.id = ccla.fk_class
 WHERE cl.active = 1
 AND ch.active = 1
 AND cl.fk_centre IN (1, 5, 10, 18, 16, 20)
-AND (cl.`to` >= CURRENT_DATE OR cl.`to` IS NULL)
 AND cl.from = (
     SELECT MAX(cl2.from)
     FROM child_level cl2
     WHERE cl2.fk_child = cl.fk_child
     AND cl2.active = 1
-    AND (cl2.`to` >= CURRENT_DATE OR cl2.`to` IS NULL)
+    -- Prioritize records where cl2.to > CURRENT_DATE
+    AND (
+        cl2.to > CURRENT_DATE
+        OR (
+            cl2.to IS NULL 
+            AND NOT EXISTS (
+                SELECT 1 FROM child_level cl3 
+                WHERE cl3.fk_child = cl.fk_child 
+                AND cl3.active = 1 
+                AND cl3.to > CURRENT_DATE
+            )
+        )
+    )
 );

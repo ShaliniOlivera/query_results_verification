@@ -32,7 +32,7 @@ columns_to_verify = {
         "parent_two_lastname", "parent_two_nric", "parent_two_email", "parent_two_mobile_number", "parent_two_home_phone",
         "parent_two_date_of_birth", "parent_two_nationality", "parent_two_race", "parent_two_e_marital_status",
         "parent_two_qualification", "parent_two_occupation", "parent_two_working_status", "parent_two_pr_commencement_date",
-        "address_postal_code", "address_city", "address_country","address_line_1", "address_block", "address_floor", "address_unit_no"
+        "address_postal_code", "address_city", "address_country", "address_line_1", "address_block", "address_floor", "address_unit_no"
     ]
 }
 
@@ -42,7 +42,7 @@ wb = Workbook()
 # Create the "Processed" sheet (summary)
 ws_processed = wb.active
 ws_processed.title = "Processed"
-ws_processed.append(["SQL Files Verified", "Status", "Date Executed"])
+ws_processed.append(["SQL Files Verified", "Status", "Mismatched Count", "Date Executed"])
 
 # Connect to MySQL database
 db_conn = mysql.connector.connect(**dev1)
@@ -79,9 +79,7 @@ for query1_file, query2_file in sql_files:
     ws_discrepancy = wb.create_sheet(title=sheet_name)
 
     # Header for discrepancies sheet with updated column names
-    header = ["Overall Result", "QA Query", "Dev Query"]
-    if comparison_columns:
-        header.append(comparison_columns[0])  # Dynamically setting the correct column name
+    header = ["Overall Result", "QA Query", "Dev Query", comparison_columns[0]]
     
     for col in comparison_columns[1:]:
         header.append(f"{col} Status")
@@ -92,6 +90,7 @@ for query1_file, query2_file in sql_files:
     ws_discrepancy.append(header)
 
     has_mismatch = False
+    mismatch_count = 0
 
     for id_value in df1.index:
         if id_value in df2.index:
@@ -108,7 +107,8 @@ for query1_file, query2_file in sql_files:
 
                     if status == "MISMATCH":
                         overall_status = "MISMATCH"
-                        has_mismatch = True 
+                        has_mismatch = True
+                        mismatch_count += 1
 
                     row_data.extend([status, value1, value2])
                 else:
@@ -119,7 +119,7 @@ for query1_file, query2_file in sql_files:
 
     # Results
     final_status = "MISMATCH" if has_mismatch else "MATCH"
-    ws_processed.append([f"{query1_file} | {query2_file}", final_status, current_date])
+    ws_processed.append([f"{query1_file} | {query2_file}", final_status, mismatch_count, current_date])
 
 # Save the workbook
 file_name = os.path.join(result_dir, f"sql_comparison_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx")

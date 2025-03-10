@@ -10,13 +10,29 @@ sql_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/queries'
 result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
 
 # List of SQL query file names
-sql_files = [('qa_child_profile.sql', 'dev_child_profile.sql')]
+sql_files = [
+    ('qa_child_details.sql', 'dev_child_profile.sql'),
+    ('qa_parent_details.sql', 'dev_child_profile.sql')
+]
 
 # Columns to verify (QA Query first)
 columns_to_verify = {
-    ('qa_child_profile.sql', 'dev_child_profile.sql'): [
+    ('qa_child_details.sql', 'dev_child_profile.sql'): [
         "id", "child_firstname", "child_lastname", "child_birth_certificate",
-        "date_of_birth", "gender", "race", "nationality", "profile_photo_storage_path"
+        "date_of_birth", "gender", "race", "nationality", "profile_photo_storage_path", "current_level_enrolment_date",
+        "current_centre_code", "current_level", "current_program", "current_class_enrolment_date", "current_class_id", "current_class_name"
+    ],
+    
+    ('qa_parent_details.sql', 'dev_child_profile.sql'): [
+        "parent_one_id", "parent_one_relation", "parent_one_firstname", "parent_one_lastname",
+        "parent_one_nric", "parent_one_email", "parent_one_mobile_number", "parent_one_home_phone",
+        "parent_one_date_of_birth", "parent_one_nationality", "parent_one_race", "parent_one_marital_status",
+        "parent_one_qualification", "parent_one_occupation", "parent_one_working_status", "parent_one_workplace_association",
+        "parent_one_pr_commencement_date", "parent_two_id", "parent_two_relation", "parent_two_firstname",
+        "parent_two_lastname", "parent_two_nric", "parent_two_email", "parent_two_mobile_number", "parent_two_home_phone",
+        "parent_two_date_of_birth", "parent_two_nationality", "parent_two_race", "parent_two_e_marital_status",
+        "parent_two_qualification", "parent_two_occupation", "parent_two_working_status", "parent_two_pr_commencement_date",
+        "address_postal_code", "address_city", "address_country", "address_line_1", "address_block", "address_floor", "address_unit_no"
     ]
 }
 
@@ -26,20 +42,7 @@ wb = Workbook()
 # Create the "Processed" sheet (summary)
 ws_processed = wb.active
 ws_processed.title = "Processed"
-ws_processed.append(["SQL Files Verified", "Status", "Date Executed"])
-
-# Create the "Discrepancies" sheet (detailed results)
-ws_discrepancy = wb.create_sheet(title="Detailed Result")
-
-# Header for consolidated results
-header = ["Query 1", "Query 2", "Affected ID", "Overall Status"]
-for col in columns_to_verify[('qa_child_profile.sql', 'dev_child_profile.sql')][1:]:
-    header.append(f"{col} Status")
-    header.append(f"{col} - QA Query")
-    header.append(f"{col} - Dev Query")
-
-header.append("Date Executed")
-ws_discrepancy.append(header)
+ws_processed.append(["SQL Files Verified", "Status", "Mismatched Count", "Date Executed"])
 
 # Connect to MySQL database
 db_conn = mysql.connector.connect(**dev1)
@@ -68,7 +71,26 @@ for query1_file, query2_file in sql_files:
     
     comparison_columns = columns_to_verify.get((query1_file, query2_file), [])
 
+    # Generate a valid sheet name
+    sheet_name = f"{query1_file} vs {query2_file}".replace('.sql', '').replace('_', ' ')
+    sheet_name = sheet_name[:31]  # Excel sheet names are limited to 31 characters
+
+    # Create a new sheet for this comparison
+    ws_discrepancy = wb.create_sheet(title=sheet_name)
+
+    # Header for discrepancies sheet with updated column names
+    header = ["Overall Result", "QA Query", "Dev Query", comparison_columns[0]]
+    
+    for col in comparison_columns[1:]:
+        header.append(f"{col} Status")
+        header.append(f"{col} - QA Query")
+        header.append(f"{col} - Dev Query")
+    header.append("Date Executed")
+    
+    ws_discrepancy.append(header)
+
     has_mismatch = False
+    mismatch_count = 0
 
     for id_value in df1.index:
         if id_value in df2.index:
@@ -85,7 +107,8 @@ for query1_file, query2_file in sql_files:
 
                     if status == "MISMATCH":
                         overall_status = "MISMATCH"
-                        has_mismatch = True 
+                        has_mismatch = True
+                        mismatch_count += 1
 
                     row_data.extend([status, value1, value2])
                 else:
@@ -96,7 +119,7 @@ for query1_file, query2_file in sql_files:
 
     # Results
     final_status = "MISMATCH" if has_mismatch else "MATCH"
-    ws_processed.append([f"{query1_file} | {query2_file}", final_status, current_date])
+    ws_processed.append([f"{query1_file} | {query2_file}", final_status, mismatch_count, current_date])
 
 # Save the workbook
 file_name = os.path.join(result_dir, f"sql_comparison_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx")

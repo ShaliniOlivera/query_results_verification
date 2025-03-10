@@ -9,7 +9,7 @@ SELECT
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.lastname END) AS parent_one_lastname,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.identification_no END) AS parent_one_nric,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.email END) AS parent_one_email,
-    MAX(CASE WHEN co1.description = 'Mother' THEN p1.mobile_phone END) AS parent_one_mobile_no,
+    MAX(CASE WHEN co1.description = 'Mother' THEN p1.mobile_phone END) AS parent_one_mobile_number,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.mobile_phone END) AS parent_one_home_phone,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.birthdate END) AS parent_one_date_of_birth,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.nationality END) AS parent_one_nationality,
@@ -40,9 +40,9 @@ SELECT
     MAX(CASE WHEN co2.description = 'Father' THEN p2.permanent_residence_start_date END) AS parent_two_pr_commencement_date,
 
     -- Address details
-    MAX(ad.postcode) AS address_postal_code,
-    MAX(ad.city) AS address_city,
-    MAX(ad.country) AS address_country,
+    COALESCE(NULLIF(MAX(ad.postcode), ''), 'Singapore') AS address_postal_code,
+    COALESCE(NULLIF(MAX(ad.city), ''), 'Singapore') AS address_city,
+    COALESCE(NULLIF(MAX(ad.country), ''), 'Singapore') AS address_country,
     MAX(ad.address) AS address_line_1,
     MAX(ad.building) AS address_block,
     MAX(ad.floor) AS address_floor,
