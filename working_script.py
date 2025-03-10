@@ -12,7 +12,7 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
 # List of SQL query file names
 sql_files = [('qa_child_profile.sql', 'dev_child_profile.sql')]
 
-# Columns to verify
+# Columns to verify (QA Query first)
 columns_to_verify = {
     ('qa_child_profile.sql', 'dev_child_profile.sql'): [
         "id", "child_firstname", "child_lastname", "child_birth_certificate",

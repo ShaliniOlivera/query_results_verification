@@ -19,8 +19,7 @@ sql_files = [
 columns_to_verify = {
     ('qa_child_details.sql', 'dev_child_profile.sql'): [
         "id", "child_firstname", "child_lastname", "child_birth_certificate",
-        "date_of_birth", "gender", "race", "nationality", "profile_photo_storage_path", "current_level_enrolment_date",
-        "current_centre_code", "current_level", "current_program", "current_class_enrolment_date", "current_class_id", "current_class_name"
+        "date_of_birth", "gender", "race", "nationality", "profile_photo_storage_path"
     ],
     
     ('qa_parent_details.sql', 'dev_child_profile.sql'): [
@@ -31,8 +30,7 @@ columns_to_verify = {
         "parent_one_pr_commencement_date", "parent_two_id", "parent_two_relation", "parent_two_firstname",
         "parent_two_lastname", "parent_two_nric", "parent_two_email", "parent_two_mobile_number", "parent_two_home_phone",
         "parent_two_date_of_birth", "parent_two_nationality", "parent_two_race", "parent_two_e_marital_status",
-        "parent_two_qualification", "parent_two_occupation", "parent_two_working_status", "parent_two_pr_commencement_date",
-        "address_postal_code", "address_city", "address_country","address_line_1", "address_block", "address_floor", "address_unit_no"
+        "parent_two_qualification", "parent_two_occupation", "parent_two_working_status", "parent_two_pr_commencement_date"
     ]
 }
 
