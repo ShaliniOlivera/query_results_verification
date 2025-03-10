@@ -1,4 +1,16 @@
--- Get parent details
+WITH LatestChildLevel AS (
+    SELECT fk_child
+    FROM (
+        SELECT fk_child, `from`, 
+               ROW_NUMBER() OVER (PARTITION BY fk_child ORDER BY `from` DESC) AS row_num
+        FROM child_level 
+        WHERE active = 1 
+          AND fk_centre IN (1, 5, 10, 18, 16, 20)
+          AND (`to` IS NULL OR `to` >= CURRENT_DATE)
+    ) AS ranked
+    WHERE row_num = 1
+)
+
 SELECT 
     ch.id AS id,
 
@@ -16,7 +28,7 @@ SELECT
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.race END) AS parent_one_race,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.marital_status END) AS parent_one_marital_status,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.highest_qualification END) AS parent_one_qualification,
-    MAX(CASE WHEN co1.description = 'Mother' THEN p1.occupational_title END) AS parent_one_occupation,
+    MAX(CASE WHEN co1.description = 'Mother' THEN co_occup1.description END) AS parent_one_occupation,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.working_status END) AS parent_one_working_status,
     MAX(CASE WHEN co1.description = 'Mother' THEN code_mother_workplace_staff1.description END) AS parent_one_workplace_association,
     MAX(CASE WHEN co1.description = 'Mother' THEN p1.permanent_residence_start_date END) AS parent_one_pr_commencement_date,
@@ -35,66 +47,47 @@ SELECT
     MAX(CASE WHEN co2.description = 'Father' THEN p2.race END) AS parent_two_race,
     MAX(CASE WHEN co2.description = 'Father' THEN p2.marital_status END) AS parent_two_marital_status,
     MAX(CASE WHEN co2.description = 'Father' THEN p2.highest_qualification END) AS parent_two_qualification,
-    MAX(CASE WHEN co2.description = 'Father' THEN p2.occupational_title END) AS parent_two_occupation,  
+    MAX(CASE WHEN co2.description = 'Father' THEN co_occup2.description END) AS parent_two_occupation,  
     MAX(CASE WHEN co2.description = 'Father' THEN p2.working_status END) AS parent_two_working_status,
     MAX(CASE WHEN co2.description = 'Father' THEN p2.permanent_residence_start_date END) AS parent_two_pr_commencement_date,
 
     -- Address details
-    COALESCE(NULLIF(MAX(ad.postcode), ''), 'Singapore') AS address_postal_code,
-    COALESCE(NULLIF(MAX(ad.city), ''), 'Singapore') AS address_city,
-    COALESCE(NULLIF(MAX(ad.country), ''), 'Singapore') AS address_country,
-    MAX(ad.address) AS address_line_1,
-    MAX(ad.building) AS address_block,
-    MAX(ad.floor) AS address_floor,
-    MAX(ad.unit) AS address_unit_no
+    COALESCE(NULLIF(MAX(ad1.postcode), ''), NULLIF(MAX(ad2.postcode), ''), 'Singapore') AS address_postal_code,
+    COALESCE(NULLIF(MAX(ad1.city), ''), NULLIF(MAX(ad2.city), ''), 'Singapore') AS address_city,
+    COALESCE(NULLIF(MAX(ad1.country), ''), NULLIF(MAX(ad2.country), ''), 'Singapore') AS address_country,
+    COALESCE(MAX(ad1.address), MAX(ad2.address)) AS address_line_1,
+    COALESCE(MAX(ad1.building), MAX(ad2.building)) AS address_block,
+    COALESCE(MAX(ad1.floor), MAX(ad2.floor)) AS address_floor,
+    COALESCE(MAX(ad1.unit), MAX(ad2.unit)) AS address_unit_no
 
 FROM child ch
 
--- Parent 1: Selecting the first parent relation
 LEFT JOIN child_relation cr1 
     ON ch.id = cr1.fk_child AND cr1.active = 1
 LEFT JOIN parent p1 
     ON cr1.fk_parent = p1.id AND p1.active = 1
 LEFT JOIN code co1 
     ON cr1.fk_relation = co1.id
+LEFT JOIN code co_occup1 
+    ON co_occup1.label = p1.occupational_title
 LEFT JOIN code code_mother_workplace_staff1 
     ON code_mother_workplace_staff1.label = p1.workplace_staff
     AND code_mother_workplace_staff1.fk_school = 2
     AND code_mother_workplace_staff1.fk_code = '3510'
 
--- Parent 2: Selecting the second parent relation
 LEFT JOIN child_relation cr2 
     ON ch.id = cr2.fk_child AND cr2.active = 1 AND cr2.fk_parent != cr1.fk_parent
 LEFT JOIN parent p2 
     ON cr2.fk_parent = p2.id AND p2.active = 1
 LEFT JOIN code co2 
     ON cr2.fk_relation = co2.id
-LEFT JOIN code code_mother_workplace_staff2 
-    ON code_mother_workplace_staff2.label = p2.workplace_staff
-    AND code_mother_workplace_staff2.fk_school = 2
-    AND code_mother_workplace_staff2.fk_code = '3510'
+LEFT JOIN code co_occup2 
+    ON co_occup2.label = p2.occupational_title
 
--- Address join (either linked to parent or user)
-LEFT JOIN address ad 
-    ON ad.fk_parent = p1.id OR ad.fk_parent = p2.id
+LEFT JOIN address ad1 
+    ON ad1.fk_parent = p1.id
+LEFT JOIN address ad2 
+    ON ad2.fk_parent = p2.id
 
-LEFT JOIN user us 
-    ON ad.fk_user = us.id
-
-WHERE ch.id IN (
-    SELECT ch.id
-    FROM child_level cl
-    INNER JOIN child ch ON ch.id = cl.fk_child
-    WHERE cl.active = 1
-    AND ch.active = 1
-    AND cl.fk_centre IN (1, 5, 10, 18, 16, 20)
-    AND (cl.`to` >= CURRENT_DATE OR cl.`to` IS NULL)
-    AND cl.from = (
-        SELECT MAX(cl2.from)
-        FROM child_level cl2
-        WHERE cl2.fk_child = cl.fk_child
-        AND cl2.active = 1
-        AND (cl2.`to` >= CURRENT_DATE OR cl2.`to` IS NULL)
-    )
-)  
+WHERE ch.id IN (SELECT fk_child FROM LatestChildLevel)
 GROUP BY ch.id;

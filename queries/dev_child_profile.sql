@@ -1,29 +1,40 @@
 select 
+	-- child_ec.`id` as ec_id, child_ec.`value` AS `ec_val`,
 	filtered_data.id, filtered_data.`child_firstname`, filtered_data.`child_lastname`, filtered_data.`child_birth_certificate`, 
     filtered_data.`date_of_birth`, filtered_data.`gender`, filtered_data.`race`, filtered_data.`nationality`, filtered_data.`profile_photo_storage_path`,
     cl.`from` AS `current_level_enrolment_date`, cnt.`code` AS `current_centre_code`, lv.`code` AS `current_level`, prg.`code` AS `current_program`,
     cc.`from` AS `current_class_enrolment_date`, cls.`id` AS `current_class_id`, cls.`label` AS `current_class_name`,
+    -- (select ccl.`from` FROM `child_level` ccl WHERE ccl.`fk_child` = filtered_data.id AND ccl.`fk_centre` = cl.`fk_centre` AND ccl.`active` = 1 ORDER BY ccl.`from` ASC LIMIT 1) AS `current_centre_enrolment_date`,
+    filtered_data.`first_enrolment_date` AS `current_centre_enrolment_date`,
     filtered_data.`parent_one_id`, filtered_data.`parent_one_relation`, filtered_data.`parent_one_firstname`, filtered_data.`parent_one_lastname`, filtered_data.`parent_one_nric`, filtered_data.`parent_one_email`,  filtered_data.`parent_one_mobile_number`, filtered_data.`parent_one_home_phone`,
     filtered_data.`parent_one_date_of_birth`, filtered_data.`parent_one_nationality`, filtered_data.`parent_one_race`, filtered_data.`parent_one_marital_status`, filtered_data.`parent_one_qualification`,
-    filtered_data.`parent_one_occupation`, filtered_data.`parent_one_working_status`, filtered_data.`parent_one_workplace_association`, filtered_data.`parent_one_pr_commencement_date`, 
+    -- filtered_data.`parent_one_occupation` AS `parent_one_occupation_org`, 
+    IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917) AND cde.`label` = filtered_data.`parent_one_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_one_occupation`) AS `parent_one_occupation`,
+    filtered_data.`parent_one_working_status`, filtered_data.`parent_one_workplace_association`, filtered_data.`parent_one_pr_commencement_date`, 
     filtered_data.`parent_two_id`, filtered_data.`parent_two_relation`, filtered_data.`parent_two_firstname`, filtered_data.`parent_two_lastname`, filtered_data.`parent_two_nric`, filtered_data.`parent_two_email`,  filtered_data.`parent_two_mobile_number`, filtered_data.`parent_two_home_phone`,
     filtered_data.`parent_two_date_of_birth`, filtered_data.`parent_two_nationality`, filtered_data.`parent_two_race`, filtered_data.`parent_two_marital_status`, filtered_data.`parent_two_qualification`,
-    filtered_data.`parent_two_occupation`, filtered_data.`parent_two_working_status`, filtered_data.`parent_two_pr_commencement_date`, 
+    -- filtered_data.`parent_two_occupation` AS `parent_two_occupation_org`, 
+    IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917) AND cde.`label` = filtered_data.`parent_two_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_two_occupation`) AS `parent_two_occupation`,
+    filtered_data.`parent_two_working_status`, filtered_data.`parent_two_pr_commencement_date`, 
     filtered_data.`address_postal_code`, filtered_data.`address_city`, filtered_data.`address_country`, filtered_data.`address_line_1`,filtered_data.`address_block`, filtered_data.`address_floor`, filtered_data.`address_unit_no`,
     IF(wd.`id` is not null, wd.`effective_date`, IF(tnr.`id` is not null AND tnr.destination_centre NOT in (1, 5, 10, 18, 16, 20), tnr.`effective_date`, '')) AS `withdrawal_effective_date`,
     IF(tnr.`id` is not null AND tnr.destination_centre in (1, 5, 10, 18, 16, 20), tnr.`effective_date`, '') AS `transfer_effective_date`,
     IF(tnr.`id` is not null AND tnr.destination_centre in (1, 5, 10, 18, 16, 20) and tnr_destination_centre.`id` is not null, tnr_destination_centre.`code`, '') AS `transfer_destination_centre_code`
     , filtered_data.`created_at`, filtered_data.`updated_at`
+    
     -- Emergency contact (START)
-    , TRIM(CONCAT(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.FirstName')), ''), ' ', IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) AS `emergency_contact_name`
-    , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.IdentificationNo')), '') AS `emergency_contact_identification_no`
-    , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.PostalCode')), '') AS `emergency_contact_address_postal_code`
-    , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Address')), '') AS `emergency_contact_address_line_1`
-    , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.FloorNo')), '') AS `emergency_contact_address_floor_no`
-    , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.UnitNo')), '') AS `emergency_contact_address_unit_no`
-    , IFNULL(CONCAT(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.MobilePhoneCC')), JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.MobilePhone'))), '') AS `emergency_contact_mobile_phone`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, TRIM(CONCAT(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.FirstName')), ''), ' ', IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))), TRIM(CONCAT(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.firstName')), ''), ' ', IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.lastName')), '')))) AS `emergency_contact_name`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.IdentificationNo')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.identificationNo')), '')) AS `emergency_contact_identification_no`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.PostalCode')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.postalCode')), '')) AS `emergency_contact_address_postal_code`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Address')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.address')), '')) AS `emergency_contact_address_line_1`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.FloorNo')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.floorNo')), '')) AS `emergency_contact_address_floor_no`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.UnitNo')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.unitNo')), '')) AS `emergency_contact_address_unit_no`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.BlockNo')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.blockNo')), '')) AS `emergency_contact_address_block_no`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Email')), ''), IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.email')), '')) AS `emergency_contact_email`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(CONCAT(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.MobilePhoneCC')), JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.MobilePhone'))), ''), IFNULL(CONCAT(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.mobilePhoneCC')), JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.mobilePhone'))), '')) AS `emergency_contact_mobile_phone`
+    , IF(LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.LastName')), ''))) > 1, IFNULL(IF(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Relationship')), '') != '', (SELECT `description` FROM `code` cde WHERE cde.`id` = JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Relationship')) LIMIT 1), ''), ''), IFNULL(IF(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.relationship')), '') != '', (SELECT `description` FROM `code` cde WHERE cde.`id` = JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.relationship')) LIMIT 1), ''), '')) AS `emergency_contact_relationship`
     -- Emergency contact (END)
-    , IFNULL(IF(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Relationship')), '') != '', (SELECT `description` FROM `code` cde WHERE cde.`id` = JSON_UNQUOTE(JSON_EXTRACT(child_ec.`value`, '$.Relationship')) LIMIT 1), ''), '') AS `emergency_contact_relationship`
+    
     -- Medical history Family doctor (START)
     , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_medical_history.`value`, '$.familyDoctorDetails.clinicName')), '') AS `family_doctor_clinic_name`
     , IFNULL(JSON_UNQUOTE(JSON_EXTRACT(child_medical_history.`value`, '$.familyDoctorDetails.name')), '') AS `family_doctor_name`
@@ -92,13 +103,15 @@ select
 	ch.id, ch.firstname as `child_firstname`, ch.lastname as `child_lastname`, ch.`birth_certificate` AS `child_birth_certificate`, 
     ch.date_of_birth, ch.gender, ch.race, ch.nationality, 
     ch.`image_key` AS `profile_photo_storage_path`,
+    ch.`first_enrolment_date`,
     ch.created_at, ch.updated_at,
 	-- active_child.`earliest_from`, ch.*, 
     -- cr_mother.*, 
     cr_mother_code.`description` AS `parent_one_relation`,
     pr_mother.`id` AS `parent_one_id`, pr_mother.firstname as `parent_one_firstname`, pr_mother.lastname as `parent_one_lastname`, pr_mother.identification_no as `parent_one_nric`, pr_mother.`email` as `parent_one_email`, 
 		pr_mother.mobile_phone as `parent_one_mobile_number`, usr_mother.home_phone as `parent_one_home_phone`, pr_mother.`birthdate` as `parent_one_date_of_birth`, pr_mother.`nationality` as `parent_one_nationality`, 
-        pr_mother.`race` as `parent_one_race`, pr_mother.`marital_status` as `parent_one_marital_status` , pr_mother.`highest_qualification` as `parent_one_qualification`, pr_mother.`occupational_title` as `parent_one_occupation`,
+        pr_mother.`race` as `parent_one_race`, pr_mother.`marital_status` as `parent_one_marital_status` , pr_mother.`highest_qualification` as `parent_one_qualification`, 
+        pr_mother.`occupational_title` as `parent_one_occupation`,
 		pr_mother.`working_status` AS `parent_one_working_status`,
         IFNULL(code_mother_workplace_staff.`description`, '') AS `parent_one_workplace_association`,
         pr_mother.`permanent_residence_start_date` AS `parent_one_pr_commencement_date`,

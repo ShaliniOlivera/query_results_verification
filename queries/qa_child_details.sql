@@ -1,4 +1,4 @@
--- Child profile until classes with correct active child_level and child_class selection
+-- Child details with correct handling of NULL values for withdrawal, transfer, and destination centre
 SELECT 
     ch.id, 
     ch.firstname AS child_firstname, 
@@ -15,7 +15,17 @@ SELECT
     pr.code AS current_program, 
     ccla.`from` AS current_class_enrolment_date, 
     cla.id AS current_class_id, 
-    cla.label AS current_class_name
+    cla.label AS current_class_name,
+    
+    -- Withdrawal details (only for 2025)
+    COALESCE(wd.effective_date, '') AS withdrawal_effective_date, 
+
+    -- Transfer details (only for 2025)
+    COALESCE(tr.effective_date, '') AS transfer_effective_date, 
+    COALESCE(dest_ce.code, '') AS transfer_destination_centre_code,
+    ch.created_at AS created_at, 
+    ch.updated_at AS updated_at
+
 FROM child_level cl
 INNER JOIN child ch 
     ON ch.id = cl.fk_child
@@ -49,6 +59,26 @@ LEFT JOIN `child_class` ccla
     )
 LEFT JOIN `class` cla 
     ON cla.id = ccla.fk_class
+
+-- Join with Withdrawal table (only active records and for 2025)
+LEFT JOIN withdrawal wd
+    ON wd.fk_child = cl.fk_child
+    AND wd.fk_centre = cl.fk_centre
+    AND wd.active = 1
+    AND YEAR(wd.effective_date) = 2025
+
+-- Join with Transfer table (only active records and for 2025)
+LEFT JOIN transfer tr
+    ON tr.fk_child = cl.fk_child
+    AND tr.fk_level = cl.fk_level
+    AND tr.fk_program = cl.fk_program
+    AND tr.active = 1
+    AND YEAR(tr.effective_date) = 2025
+
+-- Get the destination centre for the transfer
+LEFT JOIN `centre` dest_ce
+    ON dest_ce.id = tr.destination_centre
+
 WHERE cl.active = 1
 AND ch.active = 1
 AND cl.fk_centre IN (1, 5, 10, 18, 16, 20)
