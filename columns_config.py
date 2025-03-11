@@ -87,5 +87,18 @@ columns_to_verify = {
         "centre_effective_to", "first_operation_date", "license_renewal_date", "license_renewal_duration", "certification", 
         "spark_expiration_date", "licensed_infant_care_capacity", "licensed_childcare_capacity", "created_at", "updated_at", 
         "service_level_code_offerred", "program_offered", "registration_fee",
+    ],
+    
+    #discount_item
+    ('qa_discount_item.sql', 'dev_discount_item.sql'):[
+        "id", "label", "centre_code", "discount_item_group", "type", "application_type", "amount", "from", "to", 
+        "billable_item_id", "billable_item_label", "billable_item_group_id", "billable_item_group_label", 
+        "is_recurrent_discount", "disbursement_mode", "application_level", "created_at", "updated_at"
+    ],
+    
+    #child fee tier
+    ('qa_child_fee_tier.sql', 'dev_child_fee_tier.sql'):[
+        "id", "child_firstname", "child_lastname", "child_birth_certificate", "nationality", "fee_group", 
+        "fee_tier", "fee_tier_id", "effective_from", "effective_to", "centre_code", "level_code", "program_code"
     ]
 }
