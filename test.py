@@ -1,3 +1,4 @@
+#handling duplicate IDs and those queries without created_at
 import pandas as pd
 import mysql.connector
 import os
@@ -12,19 +13,21 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
 
 # List of SQL query file names
 sql_files = [
-    ('qa_child_details.sql', 'dev_child_profile.sql'),
-    ('qa_parent_details.sql', 'dev_child_profile.sql'),
-    ('qa_child_attributes.sql', 'dev_child_profile.sql'),
-    ('qa_doctor_details.sql', 'dev_child_profile.sql'),
-    ('qa_immunization.sql', 'dev_child_profile.sql'),
-    ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
-    ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
-    ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
-    ('qa_centre_data.sql', 'dev_centre_data.sql'),
-    ('qa_discount_item.sql', 'dev_discount_item.sql'),
-    ('qa_child_fee_tier.sql', 'dev_child_fee_tier.sql')
+    # ('qa_child_details.sql', 'dev_child_profile.sql'),
+    # ('qa_parent_details.sql', 'dev_child_profile.sql'),
+    # ('qa_child_attributes.sql', 'dev_child_profile.sql'),
+    # ('qa_doctor_details.sql', 'dev_child_profile.sql'),
+    # ('qa_immunization.sql', 'dev_child_profile.sql'),
+    # ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
+    # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
+    # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
+    # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
+    # ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
+    # ('qa_centre_data.sql', 'dev_centre_data.sql'),
+    # ('qa_discount_item.sql', 'dev_discount_item.sql'),
+    # ('qa_billable_item.sql', 'dev_billable_item.sql'),
+    # ('qa_child_level.sql', 'dev_child_level.sql'),
+    ('qa_class_info.sql', 'dev_class_info.sql')
 ]
 
 # Create a new workbook
@@ -74,14 +77,6 @@ for query1_file, query2_file in sql_files:
     df1 = pd.DataFrame(data1, columns=columns1)
     df2 = pd.DataFrame(data2, columns=columns2)
 
-    if 'id' not in df1.columns or 'id' not in df2.columns:
-        print(f"❌ ERROR: 'id' column missing in one of the datasets ({query1_file}, {query2_file})")
-        ws_processed.append([f"{query1_file} | {query2_file}", "FAILED (Missing ID)", "N/A", current_date])
-        continue
-
-    df1.set_index('id', inplace=True)
-    df2.set_index('id', inplace=True)
-
     comparison_columns = columns_to_verify.get((query1_file, query2_file), df1.columns.intersection(df2.columns).tolist())
     sheet_name = f"{query1_file} vs {query2_file}".replace('.sql', '').replace('_', ' ')[:31]  
     ws_discrepancy = wb.create_sheet(title=sheet_name)
@@ -95,36 +90,50 @@ for query1_file, query2_file in sql_files:
 
     has_mismatch = False
     mismatch_count = 0
+    
+    # Merge both datasets and identify sorting column
+    df1["Source"] = "QA"
+    df2["Source"] = "Dev"
+    all_records = pd.concat([df1, df2])
 
-    for id_value in df1.index.union(df2.index):
-        row1 = df1.loc[id_value] if id_value in df1.index else None
-        row2 = df2.loc[id_value] if id_value in df2.index else None
+    # Determine sorting columns dynamically
+    sort_columns = ["id"]
+    if "created_at" in all_records.columns:
+        sort_columns.append("created_at")
 
-        if isinstance(row1, pd.DataFrame):
-            row1 = row1.iloc[-1]  # Take the latest entry if multiple exist
-        if isinstance(row2, pd.DataFrame):
-            row2 = row2.iloc[-1]
+    all_records = all_records.sort_values(by=sort_columns)
 
-        row1 = row1.fillna("N/A") if row1 is not None else pd.Series(["N/A"] * len(comparison_columns), index=comparison_columns)
-        row2 = row2.fillna("N/A") if row2 is not None else pd.Series(["N/A"] * len(comparison_columns), index=comparison_columns)
+    grouped = all_records.groupby("id", group_keys=False)
+    
+    for id_value, group in grouped:
+        qa_rows = group[group["Source"] == "QA"].drop(columns=["Source"], errors="ignore")
+        dev_rows = group[group["Source"] == "Dev"].drop(columns=["Source"], errors="ignore")
+        
+        # Ensure sorting consistency for comparison
+        qa_rows = qa_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
+        dev_rows = dev_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
+        
+        max_length = max(len(qa_rows), len(dev_rows))
 
-        overall_status = "MATCH"
-        row_data = [query1_file, query2_file, id_value]
+        for i in range(max_length):
+            qa_row = qa_rows.iloc[i] if i < len(qa_rows) else pd.Series(dtype=object)
+            dev_row = dev_rows.iloc[i] if i < len(dev_rows) else pd.Series(dtype=object)
 
-        for col in comparison_columns:
-            value1 = str(row1[col]).strip() if col in row1 else "N/A"
-            value2 = str(row2[col]).strip() if col in row2 else "N/A"
-            
-            status = "MATCH" if value1 == value2 else "MISMATCH"
-            if status == "MISMATCH":
-                overall_status = "MISMATCH"
-                has_mismatch = True
-                mismatch_count += 1
-            
-            row_data.extend([status, value1, value2])
+            overall_status = "MATCH"
+            row_data = [query1_file, query2_file, id_value]
 
-        row_data.append(current_date)
-        ws_discrepancy.append([overall_status] + row_data)
+            for col in comparison_columns:
+                value1 = str(qa_row.get(col, "N/A")).strip()
+                value2 = str(dev_row.get(col, "N/A")).strip()
+                status = "MATCH" if value1 == value2 else "MISMATCH"
+                if status == "MISMATCH":
+                    overall_status = "MISMATCH"
+                    has_mismatch = True
+                    mismatch_count += 1
+                row_data.extend([status, value1, value2])
+
+            row_data.append(current_date)
+            ws_discrepancy.append([overall_status] + row_data)
 
     final_status = "MISMATCH" if has_mismatch else "MATCH"
     ws_processed.append([f"{query1_file} | {query2_file}", final_status, mismatch_count, current_date])

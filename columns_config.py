@@ -15,7 +15,7 @@ columns_to_verify = {
         "parent_one_qualification", "parent_one_occupation", "parent_one_working_status", "parent_one_workplace_association",
         "parent_one_pr_commencement_date", "parent_two_id", "parent_two_relation", "parent_two_firstname",
         "parent_two_lastname", "parent_two_nric", "parent_two_email", "parent_two_mobile_number", "parent_two_home_phone",
-        "parent_two_date_of_birth", "parent_two_nationality", "parent_two_race", "parent_two_e_marital_status",
+        "parent_two_date_of_birth", "parent_two_nationality", "parent_two_race", "parent_two_marital_status",
         "parent_two_qualification", "parent_two_occupation", "parent_two_working_status", "parent_two_pr_commencement_date",
         "address_postal_code", "address_city", "address_country", "address_line_1", "address_block", "address_floor", "address_unit_no"
     ],
@@ -86,7 +86,7 @@ columns_to_verify = {
         "address_line_1", "address_postal_code", "address_block", "address_floor", "address_unit_no", "centre_effective_from", 
         "centre_effective_to", "first_operation_date", "license_renewal_date", "license_renewal_duration", "certification", 
         "spark_expiration_date", "licensed_infant_care_capacity", "licensed_childcare_capacity", "created_at", "updated_at", 
-        "service_level_code_offerred", "program_offered", "registration_fee",
+        "service_level_code_offerred", "program_offered", "registration_fee"
     ],
     
     #discount_item
@@ -100,5 +100,23 @@ columns_to_verify = {
     ('qa_child_fee_tier.sql', 'dev_child_fee_tier.sql'):[
         "id", "child_firstname", "child_lastname", "child_birth_certificate", "nationality", "fee_group", 
         "fee_tier", "fee_tier_id", "effective_from", "effective_to", "centre_code", "level_code", "program_code"
+    ],
+    
+    #billable_item
+    ('qa_billable_item.sql', 'dev_billable_item.sql'):[
+        "id", "label", "acc_pac_code", "type", "centre_code", "supplier", "is_default_subsidy", "display_order", 
+        "is_for_bulk_invoice", "unit_price", "max_unit_price", "subsidy_type", "gst_taxable", "cda_deductible",
+        "from", "to", "created_at", "updated_at"
+    ],
+    
+    #child_level
+    ('qa_child_level.sql', 'dev_child_level.sql'):[
+        "id", "level_code", "program_code", "from", "to", "move_reason", "created_at", "updated_at"
+    ],
+    
+    #class info
+    ('qa_class_info.sql', 'dev_class_info.sql'):[
+        "id", "label", "description", "centre_code", "level_code", "from", "to", "banner_url_path",
+        "profile_photo_url_path", "is_default_class", "created_at", "updated_at",
     ]
 }

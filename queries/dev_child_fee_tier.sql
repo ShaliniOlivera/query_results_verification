@@ -1,4 +1,3 @@
--- Kai's Child Fee Tier
 select 
 	filtered_data.`fk_child` AS `id`,
     filtered_data.`child_firstname`,
@@ -45,7 +44,7 @@ group by cl.fk_child
 	filtered_data
     inner join `child_level` cl ON cl.`id` = filtered_data.`current_enrolled_child_level_id` AND cl.`active` = 1
     inner join fee ff on ff.`fk_fee_tier` = filtered_data.`fk_fee_tier`
-		and ff.`nationality` = filtered_data.`nationality`
+		and ff.`nationality` = IF(filtered_data.`nationality`='others', 'foreigner', filtered_data.`nationality`) -- filtered_data.`nationality`
         and ff.`fk_level` = cl.`fk_level`
         and ff.`fk_program` = cl.`fk_program`
 		and ff.`active` = 1
