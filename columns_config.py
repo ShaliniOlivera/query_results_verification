@@ -118,5 +118,20 @@ columns_to_verify = {
     ('qa_class_info.sql', 'dev_class_info.sql'):[
         "id", "label", "description", "centre_code", "level_code", "from", "to", "banner_url_path",
         "profile_photo_url_path", "is_default_class", "created_at", "updated_at",
+    ],
+    
+    #child_class info
+    ('qa_child_class.sql', 'dev_child_class.sql'):[
+        "id", "centre_code", "class_id", "level_code", "from", "to", "created_at", "updated_at"
+    ],
+    
+    #giro account
+    ('qa_giro_account.sql','dev_giro_account.sql'):[
+        "id", "child_name", "child_birth_certificate", 
+        "centre_code", "id", "is_cda_account", "giro_account_bank_bic_code", "giro_account_reference_number", 
+        "giro_account_payer_account_name", "giro_account_payer_account_number", "giro_account_effective_from",
+        "giro_account_effective_to", "cda_child_name", "cda_child_birth_certificate", "giro_account_is_sibling_cda",
+        "cda_sibling_name", "cda_sibling_birth_certificate", "giro_account_application_date", "giro_account_source",
+        "giro_account_status", "giro_account_last_updated_at"
     ]
 }

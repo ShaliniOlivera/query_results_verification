@@ -13,21 +13,23 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
 
 # List of SQL query file names
 sql_files = [
-    # ('qa_child_details.sql', 'dev_child_profile.sql'),
-    # ('qa_parent_details.sql', 'dev_child_profile.sql'),
-    # ('qa_child_attributes.sql', 'dev_child_profile.sql'),
-    # ('qa_doctor_details.sql', 'dev_child_profile.sql'),
-    # ('qa_immunization.sql', 'dev_child_profile.sql'),
-    # ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
-    # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
-    # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
-    # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    # ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
-    # ('qa_centre_data.sql', 'dev_centre_data.sql'),
-    # ('qa_discount_item.sql', 'dev_discount_item.sql'),
-    # ('qa_billable_item.sql', 'dev_billable_item.sql'),
-    # ('qa_child_level.sql', 'dev_child_level.sql'),
-    ('qa_class_info.sql', 'dev_class_info.sql')
+    ('qa_child_details.sql', 'dev_child_profile.sql'),
+    ('qa_parent_details.sql', 'dev_child_profile.sql'),
+    ('qa_child_attributes.sql', 'dev_child_profile.sql'),
+    ('qa_doctor_details.sql', 'dev_child_profile.sql'),
+    ('qa_immunization.sql', 'dev_child_profile.sql'),
+    ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
+    ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
+    ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
+    ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
+    ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
+    ('qa_centre_data.sql', 'dev_centre_data.sql'),
+    ('qa_discount_item.sql', 'dev_discount_item.sql'),
+    ('qa_billable_item.sql', 'dev_billable_item.sql'),
+    ('qa_child_level.sql', 'dev_child_level.sql'),
+    ('qa_class_info.sql', 'dev_class_info.sql'),
+    ('qa_child_class.sql', 'dev_child_class.sql'),
+    ('qa_giro_account.sql','dev_giro_account.sql')
 ]
 
 # Create a new workbook
