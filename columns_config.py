@@ -21,7 +21,7 @@ columns_to_verify = {
     ],
     
     #child emergency details
-    ('qa_child_attributes.sql', 'dev_child_profile.sql'): [
+    ('qa_emergency_contact.sql', 'dev_child_profile.sql'): [
         "id", "emergency_contact_name", "emergency_contact_identification_no", "emergency_contact_address_postal_code",
         "emergency_contact_address_line_1", "emergency_contact_address_floor_no", "emergency_contact_address_unit_no",
         "emergency_contact_address_block_no", "emergency_contact_email", "emergency_contact_mobile_phone", "emergency_contact_relationship"                                                   
@@ -133,5 +133,50 @@ columns_to_verify = {
         "giro_account_effective_to", "cda_child_name", "cda_child_birth_certificate", "giro_account_is_sibling_cda",
         "cda_sibling_name", "cda_sibling_birth_certificate", "giro_account_application_date", "giro_account_source",
         "giro_account_status", "giro_account_last_updated_at"
+    ],
+    
+    #discount arrangement
+    ('qa_discount_arrangement.sql','dev_discount_arrangement.sql'):[
+        "id", "child_firstname", "child_lastname", "child_birth_certificate", "centre_code", "discount_item_id",
+        "discount_item_label", "amount", "from", "to", "is_recurrent_discount", "created_at", "updated_at"
+    ],
+    
+    #fee tier
+    ('qa_fee_tier.sql','dev_fee_tier.sql'):[
+        "id", "centre_code", "fee_label", "fee_tier_id", "fee_tier_label", "fee_group_id", "fee_group_label", 
+        "level_code", "program_code", "nationality", "amount", "registration_from", "registration_to", 
+        "effective_from", "effective_to", "created_at", "updated_at"
+    ],
+    
+    #invoice
+    ('qa_invoice.sql','dev_invoice.sql'):[
+        "id", "child_id", "centre_code", "invoice_no", "invoice_date", "invoice_label", "type", "status", 
+        "invoice_due_date", "total_payable_amount", "invoice_pdf_storage_path", "created_by_staff_name", 
+        "updated_by_staff_name" #, "created_at", "updated_at"
+    ],
+    
+    #receipt
+    ('qa_receipt.sql','dev_receipt.sql'):[
+        "id", "child_id", "centre_code", "receipt_no", "collected_date", "bank_account_no", 
+        "payment_type", "payment_mode", "document_no", "total_receipt_amount", "pdf_storage_path", 
+        "collected_by_staff_name", "cancelled_by_staff_name", "cancellation_date", "cancellation_reason", "created_at", "updated_at"
+    ],
+    
+    #refund
+    ('qa_refund.sql','dev_refund.sql'):[
+        "id", "child_id", "centre_code", "refund_no", "requested_date", "refund_completed_date", "refund_mode", "refund_type", 
+        "amount", "created_by_staff_name", "remarks", "created_at", "updated_at"
+    ],
+    
+    #credit_debit_note
+    ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'):[
+        "id", "child_id", "centre_code", "credit_debit_note_no", "credit_debit_note_date", "type", "amount", "pdf_storage_path", 
+        "created_by_staff_name", "updated_by_staff_name", "debt_write_off_requester", "debt_write_off_approver", 
+         "debt_writeoff_other_reason", "reason", "remarks", "created_at", "updated_at" # "debt_write_off_reason",
+    ],
+    
+    #SOA
+    ('qa_soa.sql','dev_soa.sql'):[
+        "id", "child_id", "centre_code", "document_date", "document_storage_path", "total_outstanding_amount", "created_at", "updated_at"
     ]
 }

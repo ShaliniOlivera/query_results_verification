@@ -17,16 +17,36 @@ SELECT
     cla.id AS current_class_id, 
     cla.label AS current_class_name,
     
-    -- Current centre enrolment date (first enrolment date at the centre) with yyyy-mm-dd format
-    DATE_FORMAT(
-        (SELECT MIN(cl2.from) 
+DATE_FORMAT(
+    COALESCE(
+        (SELECT MIN(cl2.from)
          FROM child_level cl2
          WHERE cl2.fk_child = ch.id
          AND cl2.fk_centre = ce.id
          AND cl2.active = 1
-         AND cl.fk_centre IN (1, 5, 10, 18, 16, 20)
-        ), '%Y-%m-%d'
-    ) AS current_centre_enrolment_date,
+         AND cl2.fk_centre IN (1, 5, 10, 18, 16, 20)
+         AND cl2.from > (
+            SELECT MAX(cl3.from)
+            FROM child_level cl3
+            WHERE cl3.fk_child = cl2.fk_child
+            AND cl3.fk_centre = cl2.fk_centre
+            AND cl3.active = 1
+            AND cl3.move_reason IN (4, 64)
+         )
+        ),
+        (SELECT MIN(cl4.from)
+         FROM child_level cl4
+         WHERE cl4.fk_child = ch.id
+         AND cl4.fk_centre = ce.id
+         AND cl4.active = 1
+         AND cl4.fk_centre IN (1, 5, 10, 18, 16, 20)
+        ),
+        '1900-01-01'
+    ), '%Y-%m-%d'
+) AS current_centre_enrolment_date,
+
+
+
     
     -- Withdrawal details (only for 2025)
     COALESCE(wd.effective_date, '') AS withdrawal_effective_date, 
@@ -54,7 +74,6 @@ LEFT JOIN `child_class` ccla
         FROM child_class ccla2
         WHERE ccla2.fk_child = ch.id
         AND ccla2.active = 1
-        -- Prioritize records where ccla2.to > CURRENT_DATE
         AND (
             ccla2.to > CURRENT_DATE
             OR (
@@ -71,14 +90,14 @@ LEFT JOIN `child_class` ccla
 LEFT JOIN `class` cla 
     ON cla.id = ccla.fk_class
 
--- Join with Withdrawal table (only active records and for 2025)
+
 LEFT JOIN withdrawal wd
     ON wd.fk_child = cl.fk_child
     AND wd.fk_centre = cl.fk_centre
     AND wd.active = 1
     AND YEAR(wd.effective_date) = 2025
 
--- Join with Transfer table (only active records and for 2025)
+
 LEFT JOIN transfer tr
     ON tr.fk_child = cl.fk_child
     AND tr.fk_level = cl.fk_level
@@ -86,7 +105,7 @@ LEFT JOIN transfer tr
     AND tr.active = 1
     AND YEAR(tr.effective_date) = 2025
 
--- Get the destination centre for the transfer
+
 LEFT JOIN `centre` dest_ce
     ON dest_ce.id = tr.destination_centre
 
@@ -98,7 +117,6 @@ AND cl.from = (
     FROM child_level cl2
     WHERE cl2.fk_child = cl.fk_child
     AND cl2.active = 1
-    -- Prioritize records where cl2.to > CURRENT_DATE
     AND (
         cl2.to > CURRENT_DATE
         OR (

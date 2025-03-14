@@ -1,4 +1,4 @@
-#HANDLING DUPLICATE IDs but not those files without created_at column
+#handling duplicate IDs and those queries without created_at
 import pandas as pd
 import mysql.connector
 import os
@@ -13,21 +13,24 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
 
 # List of SQL query file names
 sql_files = [
-    ('qa_child_details.sql', 'dev_child_profile.sql'),
-    ('qa_parent_details.sql', 'dev_child_profile.sql'),
-    ('qa_child_attributes.sql', 'dev_child_profile.sql'),
-    ('qa_doctor_details.sql', 'dev_child_profile.sql'),
-    ('qa_immunization.sql', 'dev_child_profile.sql'),
-    ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
-    ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
-    ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
-    ('qa_centre_data.sql', 'dev_centre_data.sql'),
-    ('qa_discount_item.sql', 'dev_discount_item.sql'),
-    #('qa_child_fee_tier.sql', 'dev_child_fee_tier.sql'),
-    ('qa_billable_item.sql', 'dev_billable_item.sql'),
-    ('qa_child_level.sql', 'dev_child_level.sql')
+    # ('qa_child_details.sql', 'dev_child_profile.sql'),
+    # ('qa_parent_details.sql', 'dev_child_profile.sql'),
+    # ('qa_child_attributes.sql', 'dev_child_profile.sql'),
+    # ('qa_doctor_details.sql', 'dev_child_profile.sql'),
+    # ('qa_immunization.sql', 'dev_child_profile.sql'),
+    # ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
+    # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
+    # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
+    # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
+    # ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
+    # ('qa_centre_data.sql', 'dev_centre_data.sql'),
+    # ('qa_discount_item.sql', 'dev_discount_item.sql'),
+    # ('qa_billable_item.sql', 'dev_billable_item.sql'),
+    # ('qa_child_level.sql', 'dev_child_level.sql'),
+    # ('qa_class_info.sql', 'dev_class_info.sql'),
+    # ('qa_child_class.sql', 'dev_child_class.sql'),
+    # ('qa_giro_account.sql','dev_giro_account.sql'),
+    ('qa_discount_arrangement.sql','dev_discount_arrangement.sql')
 ]
 
 # Create a new workbook
@@ -91,10 +94,17 @@ for query1_file, query2_file in sql_files:
     has_mismatch = False
     mismatch_count = 0
     
-    # Merge both datasets and sort by ID for proper alignment
+    # Merge both datasets and identify sorting column
     df1["Source"] = "QA"
     df2["Source"] = "Dev"
-    all_records = pd.concat([df1, df2]).sort_values(by=["id", "created_at"])
+    all_records = pd.concat([df1, df2])
+
+    # Determine sorting columns dynamically
+    sort_columns = ["id"]
+    if "created_at" in all_records.columns:
+        sort_columns.append("created_at")
+
+    all_records = all_records.sort_values(by=sort_columns)
 
     grouped = all_records.groupby("id", group_keys=False)
     
@@ -102,7 +112,7 @@ for query1_file, query2_file in sql_files:
         qa_rows = group[group["Source"] == "QA"].drop(columns=["Source"], errors="ignore")
         dev_rows = group[group["Source"] == "Dev"].drop(columns=["Source"], errors="ignore")
         
-        # Match records properly before comparing to avoid incorrect mismatches
+        # Ensure sorting consistency for comparison
         qa_rows = qa_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
         dev_rows = dev_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
         
