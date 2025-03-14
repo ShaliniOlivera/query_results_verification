@@ -4,7 +4,7 @@ SELECT DISTINCT
     ch.birth_certificate AS child_birth_certificate,
     co.description AS relationship, 
     cl_centre.code AS centre_code,
-    COALESCE(IF(gcv.id IS NOT NULL, 'Yes', 'No'), 'No') AS is_centre_verified,
+    -- COALESCE(IF(gcv.id IS NOT NULL, 'Yes', 'No'), 'No') AS is_centre_verified,
     gu.id AS guardian_id,
     gu.firstname AS guardian_firstname, 
     gu.lastname AS guardian_lastname, 
@@ -45,8 +45,8 @@ LEFT JOIN (
 LEFT JOIN `guardian_centre_verification` gcv 
     ON gcv.fk_guardian = gu.id 
     AND gcv.active = 1 
-    AND gcv.status != "rejected"
     AND gcv.fk_centre = cl_centre.fk_centre
+    AND gcv.status = "verified"
 WHERE ch.id IN (
     SELECT ch.id
     FROM child_level cl
@@ -64,4 +64,5 @@ WHERE ch.id IN (
     )
 )
 AND gu.active = 1
-AND gcr.active = 1;
+AND gcr.active = 1
+AND gcv.status = "verified";

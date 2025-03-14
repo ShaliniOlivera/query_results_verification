@@ -1,7 +1,6 @@
 select 
 	filtered_data.`id`, filtered_data.`child_name`, filtered_data.`child_birth_certificate`, filtered_data.`relationship`,
     cnt.`code` AS `centre_code`,
-    IF(gcv.`id` IS NOT NULL, 'Yes', 'No') AS `is_centre_verified`,
     filtered_data.`guardian_id`, filtered_data.`guardian_firstname`, filtered_data.`guardian_lastname`, filtered_data.`guardian_identification_no`, 
     filtered_data.`guardian_email`, filtered_data.`guardian_mobile_phone_country_code`, filtered_data.`guardian_mobile_phone`, filtered_data.`guardian_gender`, 
     filtered_data.`guardian_profile_photo_storage_path`, 
@@ -44,8 +43,8 @@ group by cl.fk_child
 ) filtered_data
 	inner join `child_level` cl ON cl.`id` = filtered_data.`current_enrolled_child_level_id` AND cl.`active` = 1
     inner join `centre` cnt ON cnt.`id` = cl.`fk_centre`
-    left outer join `guardian_centre_verification` gcv ON gcv.`fk_guardian` = filtered_data.`guardian_id`
+    inner join `guardian_centre_verification` gcv ON gcv.`fk_guardian` = filtered_data.`guardian_id`
 		AND gcv.`fk_centre` = cl.`fk_centre`
-        AND gcv.`status` != 'rejected'
+        AND gcv.`status` = 'verified'
 		AND gcv.`active` = 1
 ;

@@ -75,10 +75,10 @@ columns_to_verify = {
     
     #guardians
     ('qa_guardian_data.sql', 'dev_guardian_data.sql'):[
-        "id", "child_name", "child_birth_certificate", "relationship", "centre_code", "is_centre_verified", 
+        "id", "child_name", "child_birth_certificate", "relationship", "centre_code",  
         "guardian_id", "guardian_firstname", "guardian_lastname", "guardian_identification_no", "guardian_email", 
         "guardian_mobile_phone_country_code", "guardian_mobile_phone", "guardian_gender", "guardian_profile_photo_storage_path", 
-        "guardian_ic_front_image_storage_path", "guardian_ic_back_image_storage_path", "created_at", "updated_at", "created_by"
+        "guardian_ic_front_image_storage_path", "guardian_ic_back_image_storage_path", "created_at", "updated_at", "created_by" #"is_centre_verified",
     ],
     #centre
     ('qa_centre_data.sql', 'dev_centre_data.sql'):[

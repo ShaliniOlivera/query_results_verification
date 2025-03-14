@@ -13,7 +13,7 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result_quer
 
 # List of SQL query file names
 sql_files = [
-    #  ('qa_child_details.sql', 'dev_child_profile.sql'),
+    # ('qa_child_details.sql', 'dev_child_profile.sql'),
     # ('qa_parent_details.sql', 'dev_child_profile.sql'),
     # ('qa_emergency_contact.sql', 'dev_child_profile.sql'),
     # ('qa_doctor_details.sql', 'dev_child_profile.sql'),
@@ -22,7 +22,7 @@ sql_files = [
     # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
     # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
     # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    # ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
+    ('qa_guardian_data.sql', 'dev_guardian_data.sql')
     # ('qa_centre_data.sql', 'dev_centre_data.sql'),
     # ('qa_discount_item.sql', 'dev_discount_item.sql'),
     # ('qa_billable_item.sql', 'dev_billable_item.sql'),
@@ -35,8 +35,8 @@ sql_files = [
     # ('qa_invoice.sql','dev_invoice.sql'),
     # ('qa_receipt.sql','dev_receipt.sql'),
     # ('qa_refund.sql','dev_refund.sql'),
-    #('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
-    ('qa_soa.sql','dev_soa.sql')
+    # ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
+    # ('qa_soa.sql','dev_soa.sql')
 ]
 
 # Create a new workbook
