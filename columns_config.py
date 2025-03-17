@@ -178,5 +178,16 @@ columns_to_verify = {
     #SOA
     ('qa_soa.sql','dev_soa.sql'):[
         "id", "child_id", "centre_code", "document_date", "document_storage_path", "total_outstanding_amount", "created_at", "updated_at"
+    ],
+    
+    #child soa
+    ('qa_child_soa.sql','dev_child_soa.sql'):[
+        "id", "child_id", "centre_code", "document_date", "storage_path"
+    ],
+    
+    #child deposit
+    ('qa_child_deposit.sql','dev_child_deposit.sql'):[
+        "id", "centre_code", "invoice_no", "total_deposit_amount", "receipt_no", "receipt_document_no", "receipt_paid_amount",
+        "receipt_payment_mode", "receipt_payment_type", "bank_account_no", "is_sibling_cda"
     ]
 }

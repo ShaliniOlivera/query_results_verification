@@ -22,7 +22,7 @@ sql_files = [
     # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
     # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
     # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_guardian_data.sql', 'dev_guardian_data.sql')
+    #('qa_guardian_data.sql', 'dev_guardian_data.sql')
     # ('qa_centre_data.sql', 'dev_centre_data.sql'),
     # ('qa_discount_item.sql', 'dev_discount_item.sql'),
     # ('qa_billable_item.sql', 'dev_billable_item.sql'),
@@ -36,7 +36,9 @@ sql_files = [
     # ('qa_receipt.sql','dev_receipt.sql'),
     # ('qa_refund.sql','dev_refund.sql'),
     # ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
-    # ('qa_soa.sql','dev_soa.sql')
+    # ('qa_soa.sql','dev_soa.sql'),
+    #('qa_child_soa.sql','dev_child_soa.sql'),
+    ('qa_child_deposit.sql','dev_child_deposit.sql')
 ]
 
 # Create a new workbook
