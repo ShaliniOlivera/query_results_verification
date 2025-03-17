@@ -1,19 +1,26 @@
 WITH active_child AS (
-   SELECT 
-        cl.fk_child, 
-        MIN(cl.`from`) AS earliest_from
-    FROM child_level cl
-    WHERE cl.fk_centre IN (1, 5, 10, 18, 16, 20)
-      AND (cl.`to` IS NULL OR cl.`to` >= CURRENT_TIMESTAMP)
-      AND cl.`active` = 1
-    GROUP BY cl.fk_child
+   -- reverify if the missing child records are elligible for export
+SELECT ch.id
+FROM child_level cl
+INNER JOIN child ch ON ch.id = cl.fk_child
+WHERE cl.active = 1
+AND ch.active = 1
+AND cl.fk_centre IN (1, 5, 10, 18, 16, 20)
+AND (cl.`to` >= CURRENT_DATE OR cl.`to` IS NULL)
+AND cl.from = (
+    SELECT MAX(cl2.from)
+    FROM child_level cl2
+    WHERE cl2.fk_child = cl.fk_child
+    AND cl2.active = 1
+    AND (cl2.`to` >= CURRENT_DATE OR cl2.`to` IS NULL)
+)
 ), 
 unique_deposit_invoice_per_child AS (
     SELECT 
-        ac.fk_child AS child_id,
+        ac.id AS id,
         MAX(ii.id) AS invoice_item_id
     FROM active_child ac
-    INNER JOIN `invoice` iv ON iv.fk_child = ac.fk_child
+    INNER JOIN `invoice` iv ON iv.fk_child = ac.id
     INNER JOIN `invoice_item` ii 
         ON ii.fk_invoice = iv.id 
         AND ii.active = 1 
@@ -22,10 +29,10 @@ unique_deposit_invoice_per_child AS (
       AND iv.status = 'completed'
       AND iv.active = 1
       AND (iv.invoice_type = 'deposit' OR iv.label LIKE 'deposit%' OR ii.id IS NOT NULL)
-    GROUP BY ac.fk_child
+    GROUP BY ac.id
 )
 SELECT 
-    udp.child_id AS id,
+    udp.id AS id,
     ce.code AS centre_code,
     iv.invoice_no,
     ii.total_amount AS total_deposit_amount,
@@ -48,4 +55,4 @@ LEFT JOIN `receipt_item` ri ON ri.fk_invoice_item = udp.invoice_item_id AND ri.a
 LEFT JOIN `receipt` rr ON rr.id = ri.fk_receipt AND rr.active = 1
 LEFT JOIN `bank_account` ba ON ba.id = rr.fk_bank_account
 WHERE rr.cancelled_date IS NULL 
-ORDER BY udp.child_id;
+ORDER BY udp.id;
