@@ -1,5 +1,4 @@
 WITH active_child AS (
-   -- reverify if the missing child records are elligible for export
 SELECT ch.id
 FROM child_level cl
 INNER JOIN child ch ON ch.id = cl.fk_child

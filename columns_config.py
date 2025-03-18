@@ -189,5 +189,11 @@ columns_to_verify = {
     ('qa_child_deposit.sql','dev_child_deposit.sql'):[
         "id", "centre_code", "invoice_no", "total_deposit_amount", "receipt_no", "receipt_document_no", "receipt_paid_amount",
         "receipt_payment_mode", "receipt_payment_type", "bank_account_no", "is_sibling_cda"
+    ],
+    
+    #staff
+    ('qa_staff.sql','dev_staff.sql'):[
+        "id", "staff_id", "email", "firstname", "lastname", "display_name", "mobile_phone", "profile_photo_storage_path",
+        "role", "centre_codes", "class_ids", "created_at", "updated_at"
     ]
 }

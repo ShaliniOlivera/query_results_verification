@@ -38,7 +38,8 @@ sql_files = [
     # ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
     # ('qa_soa.sql','dev_soa.sql'),
     #('qa_child_soa.sql','dev_child_soa.sql'),
-    ('qa_child_deposit.sql','dev_child_deposit.sql')
+    #('qa_child_deposit.sql','dev_child_deposit.sql'),
+    ('qa_staff.sql','dev_staff.sql')
 ]
 
 # Create a new workbook
