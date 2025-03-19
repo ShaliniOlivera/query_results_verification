@@ -1,149 +1,125 @@
-#handling duplicate IDs and those queries without created_at
-import pandas as pd
-import mysql.connector
 import os
-from openpyxl import Workbook
+import json
+import ast
+import pandas as pd
+import subprocess
 from datetime import datetime
-from db_config import *
-from columns_config import columns_to_verify
 
 # Directories
-sql_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/queries'
-result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result'
+result_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/result_jsonQuery_verification"
+json_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/json_files"
 
-# List of SQL query file names
-sql_files = [
-    ('qa_child_details.sql', 'dev_child_profile.sql'),
-    ('qa_parent_details.sql', 'dev_child_profile.sql'),
-    ('qa_child_attributes.sql', 'dev_child_profile.sql'),
-    ('qa_doctor_details.sql', 'dev_child_profile.sql'),
-    ('qa_immunization.sql', 'dev_child_profile.sql'),
-    ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
-    ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
-    ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
-    ('qa_centre_data.sql', 'dev_centre_data.sql'),
-    ('qa_discount_item.sql', 'dev_discount_item.sql'),
-    ('qa_billable_item.sql', 'dev_billable_item.sql'),
-    ('qa_child_level.sql', 'dev_child_level.sql'),
-    ('qa_class_info.sql', 'dev_class_info.sql'),
-    ('qa_child_class.sql', 'dev_child_class.sql'),
-    ('qa_giro_account.sql','dev_giro_account.sql')
+# JSON file
+json_file = "lsh_premium_observation.json"
+json_file_path = os.path.join(json_dir, json_file)
+
+# ✅ Step 1: Run SQL query to fetch latest results
+print("🔄 Running SQL query to fetch latest results...")
+result = subprocess.run(["python3", "run_sql_and_export.py"], capture_output=True, text=True)
+output_lines = result.stdout.split("\n")
+
+# ✅ Step 2: Extract the latest output file from run_sql_and_export.py
+sql_result_path = None
+for line in output_lines:
+    if "OUTPUT_FILE=" in line:
+        sql_result_path = line.split("OUTPUT_FILE=")[-1].strip()
+
+if not sql_result_path or not os.path.exists(sql_result_path):
+    print(f"❌ SQL result file not found: {sql_result_path}")
+    exit(1)
+
+# ✅ Step 3: Load SQL result
+df_sql = pd.read_csv(sql_result_path)
+
+# ✅ Step 4: Load JSON data
+with open(json_file_path, "r", encoding="utf-8") as f:
+    json_data = json.load(f)
+
+# Convert JSON to DataFrame
+json_records = []
+for record in json_data:  
+    json_records.append({
+        "id": record["id"],
+        "title": record["title"],
+        "description": record["description"],
+        "interpretation": record.get("interpretation", ""),
+        "status": record["status"],
+        "published_at": record["published_at"],
+        "created_at": record["created_at"],
+        "updated_at": record["updated_at"],
+        "display_date": record["display_date"],
+        "centres": json.dumps(record["centres"], sort_keys=True),
+        "children": json.dumps(record.get("children", ""), sort_keys=True),
+        "classes": json.dumps(record.get("classes", ""), sort_keys=True),
+        "medias": json.dumps(record.get("medias", ""), sort_keys=True),
+        "tags": json.dumps(record.get("tags", ""), sort_keys=True),
+        "lesson_plans": json.dumps(record.get("lesson_plans", ""), sort_keys=True),
+        "link": record.get("link", ""),
+    })
+df_json = pd.DataFrame(json_records)
+
+# ✅ Step 5: Merge SQL and JSON data on "id" to compare values
+def safe_json_parse(value):
+    if isinstance(value, str):
+        try:
+            return json.dumps(json.loads(value), sort_keys=True)
+        except json.JSONDecodeError:
+            try:
+                return json.dumps(ast.literal_eval(value), sort_keys=True)
+            except (ValueError, SyntaxError):
+                return json.dumps([])
+    return value
+
+df_sql["centres"] = df_sql["centres"].apply(safe_json_parse)
+df_sql["children"] = df_sql["children"].apply(safe_json_parse)
+df_sql["classes"] = df_sql["classes"].apply(safe_json_parse)
+df_sql["medias"] = df_sql["medias"].apply(safe_json_parse)
+df_sql["tags"] = df_sql["tags"].apply(safe_json_parse)
+df_sql["lesson_plans"] = df_sql["lesson_plans"].apply(safe_json_parse)
+
+df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="outer")
+
+# ✅ Step 6: Define the columns to compare
+columns_to_compare = [
+    "title", "description", "interpretation", "status", "published_at", "created_at",
+    "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link"
 ]
 
-# Create a new workbook
-wb = Workbook()
-ws_processed = wb.active
-ws_processed.title = "Processed"
-ws_processed.append(["SQL Files Verified", "Status", "Mismatched Count", "Date Executed"])
+# ✅ Step 7: Create status columns
+for col in columns_to_compare:
+    df_merged[f"{col}_status"] = df_merged[f"{col}_sql"] == df_merged[f"{col}_json"]
 
-# Connect to MySQL database
-db_conn = mysql.connector.connect(**dev1)
-cursor = db_conn.cursor()
+# ✅ Step 8: Add Overall Status column
+status_columns = [f"{col}_status" for col in columns_to_compare]
+df_merged["Overall Status"] = df_merged[status_columns].apply(lambda x: "Mismatch" if any(x != True) else "Match", axis=1)
 
-current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+# ✅ Step 9: Rearrange columns for better readability
+ordered_columns = ["Overall Status", "id"]
+for col in columns_to_compare:
+    ordered_columns.append(f"{col}_status")
+    ordered_columns.append(f"{col}_sql")
+    ordered_columns.append(f"{col}_json")
 
-def execute_query(query, query_name):
-    """Executes a query and returns data with column names, handling errors."""
-    try:
-        cursor.execute(query)
-        data = cursor.fetchall()
-        
-        if cursor.description is None:
-            print(f"⚠️ WARNING: No data returned for {query_name}.")
-            return None, None
-        
-        columns = [desc[0] for desc in cursor.description]
-        return data, columns
-    
-    except mysql.connector.Error as err:
-        print(f"❌ ERROR: Query execution failed for {query_name}: {err}")
-        return None, None
+df_all_results = df_merged[ordered_columns]
 
-for query1_file, query2_file in sql_files:
-    print(f"🔍 Verifying SQL Files: {query1_file} and {query2_file}...")  
-    
-    with open(os.path.join(sql_dir, query1_file), 'r') as file:
-        query1 = file.read()
-    with open(os.path.join(sql_dir, query2_file), 'r') as file:
-        query2 = file.read()
+# ✅ Step 10: Save results to Excel with timestamped filename
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+output_xlsx = os.path.join(result_dir, f"verification_result_{timestamp}.xlsx")
 
-    data1, columns1 = execute_query(query1, query1_file)
-    data2, columns2 = execute_query(query2, query2_file)
+# Create the Excel writer
+with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
+    # First sheet: Processed file summary
+    summary_df = pd.DataFrame({
+        "File Name": [os.path.basename(sql_result_path)],
+        "Total Records Verified": [len(df_merged)],
+        "Mismatched Records": [df_merged["Overall Status"].eq("Mismatch").sum()],
+        "Matched Records": [df_merged["Overall Status"].eq("Match").sum()],
+        "Status": ["Mismatched" if df_merged["Overall Status"].eq("Mismatch").sum() > 0 else "Matched"],
+        "Execution Timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+    })
+    summary_df.to_excel(writer, sheet_name="Processed", index=False)
 
-    if data1 is None or data2 is None:
-        ws_processed.append([f"{query1_file} | {query2_file}", "FAILED", "N/A", current_date])
-        continue
+    # Second sheet: Detailed verification results (All records)
+    df_all_results.to_excel(writer, sheet_name="Verification Details", index=False)
 
-    df1 = pd.DataFrame(data1, columns=columns1)
-    df2 = pd.DataFrame(data2, columns=columns2)
-
-    comparison_columns = columns_to_verify.get((query1_file, query2_file), df1.columns.intersection(df2.columns).tolist())
-    sheet_name = f"{query1_file} vs {query2_file}".replace('.sql', '').replace('_', ' ')[:31]  
-    ws_discrepancy = wb.create_sheet(title=sheet_name)
-    header = ["Overall Result", "QA Query", "Dev Query", "ID"]
-    
-    for col in comparison_columns:
-        header.extend([f"{col} Status", f"{col} - QA Query", f"{col} - Dev Query"])
-    header.append("Date Executed")
-    
-    ws_discrepancy.append(header)
-
-    has_mismatch = False
-    mismatch_count = 0
-    
-    # Merge both datasets and identify sorting column
-    df1["Source"] = "QA"
-    df2["Source"] = "Dev"
-    all_records = pd.concat([df1, df2])
-
-    # Determine sorting columns dynamically
-    sort_columns = ["id"]
-    if "created_at" in all_records.columns:
-        sort_columns.append("created_at")
-
-    all_records = all_records.sort_values(by=sort_columns)
-
-    grouped = all_records.groupby("id", group_keys=False)
-    
-    for id_value, group in grouped:
-        qa_rows = group[group["Source"] == "QA"].drop(columns=["Source"], errors="ignore")
-        dev_rows = group[group["Source"] == "Dev"].drop(columns=["Source"], errors="ignore")
-        
-        # Ensure sorting consistency for comparison
-        qa_rows = qa_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
-        dev_rows = dev_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
-        
-        max_length = max(len(qa_rows), len(dev_rows))
-
-        for i in range(max_length):
-            qa_row = qa_rows.iloc[i] if i < len(qa_rows) else pd.Series(dtype=object)
-            dev_row = dev_rows.iloc[i] if i < len(dev_rows) else pd.Series(dtype=object)
-
-            overall_status = "MATCH"
-            row_data = [query1_file, query2_file, id_value]
-
-            for col in comparison_columns:
-                value1 = str(qa_row.get(col, "N/A")).strip()
-                value2 = str(dev_row.get(col, "N/A")).strip()
-                status = "MATCH" if value1 == value2 else "MISMATCH"
-                if status == "MISMATCH":
-                    overall_status = "MISMATCH"
-                    has_mismatch = True
-                    mismatch_count += 1
-                row_data.extend([status, value1, value2])
-
-            row_data.append(current_date)
-            ws_discrepancy.append([overall_status] + row_data)
-
-    final_status = "MISMATCH" if has_mismatch else "MATCH"
-    ws_processed.append([f"{query1_file} | {query2_file}", final_status, mismatch_count, current_date])
-
-file_name = os.path.join(result_dir, f"sql_comparison_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx")
-wb.save(file_name)
-
-cursor.close()
-db_conn.close()
-
-print(f"✅ Comparison results saved to: {file_name}")
+print(f"✅ Verification completed. Results saved to: {output_xlsx}")

@@ -1,10 +1,3 @@
-SET SESSION group_concat_max_len = 100000;
-SET SESSION sort_buffer_size = 512000000;
-
-
-SET SESSION group_concat_max_len = 100000;
-SET SESSION sort_buffer_size = 512000000;
-
 SELECT DISTINCT 
     ca.id,
     ca.title,
