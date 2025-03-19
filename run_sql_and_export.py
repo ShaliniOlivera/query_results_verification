@@ -20,10 +20,14 @@ try:
     conn = get_connection(env="ms_dev02")  
 
     with conn.cursor() as cursor:
-        # Step 1: Call stored procedure to create temp table
+        # Step 1: Call stored procedures to create temp tables
         print("🔄 Calling stored procedure: create_temp_child()...")
         cursor.execute("CALL create_temp_child();")
-        print("✅ Temporary table created successfully!")
+        print("✅ Temporary table 'temp_child' created successfully!")
+
+        print("🔄 Calling stored procedure: create_temp_child_class()...")
+        cursor.execute("CALL create_temp_child_class();")
+        print("✅ Temporary table 'temp_child_class' created successfully!")
 
         # Step 2: Read and execute SQL file
         with open(sql_file, "r") as f:

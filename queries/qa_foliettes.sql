@@ -10,7 +10,7 @@ SELECT DISTINCT
     ca.updated_at,
     ca.display_date,
     JSON_OBJECT('id', MIN(caas.fk_centre), 'code', MIN(ce.code)) AS centres,
-    GROUP_CONCAT(DISTINCT JSON_OBJECT('id', caas.fk_class, 'label', NULL)) AS classes,
+    GROUP_CONCAT(DISTINCT JSON_OBJECT('id', caas.fk_class, 'label', tcc.class_name)) AS classes,
     GROUP_CONCAT(DISTINCT JSON_OBJECT('id', caas.fk_child, 'fullname', tch.fullname, 'birth_certificate', tch.birth_certificate)) AS children,
     GROUP_CONCAT(DISTINCT  JSON_OBJECT(
     "type", cai.type, 
@@ -40,6 +40,7 @@ LEFT JOIN class_activity_tag_relation catr ON catr.fk_class_activity = ca.id
 LEFT JOIN class_activity_tag cat ON cat.id = catr.fk_activity_tag
 LEFT JOIN class_activity_lesson_plan calp ON calp.fk_class_activity = ca.id
 LEFT JOIN lesson_plan lp ON lp.id = calp.fk_lesson_plan
+LEFT JOIN `temp_child_class` tcc ON tcc.child_id = caas.fk_child AND tcc.class_id = caas.fk_class
 WHERE 
     ca.type = "foliette"
     AND ca.active = 1
@@ -48,4 +49,3 @@ WHERE
 GROUP BY 
     ca.id, ca.title, ca.description, ca.interpretation, ca.link, ca.status, 
     ca.published_at, ca.created_at, ca.updated_at, ca.display_date;
- 
