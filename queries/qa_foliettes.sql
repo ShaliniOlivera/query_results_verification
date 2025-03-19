@@ -18,7 +18,17 @@ SELECT DISTINCT
     "display_order", cai.index, 
     "created_at", DATE_FORMAT(cai.created_at, '%Y-%m-%d %H:%i:%s'), 
     "updated_at", DATE_FORMAT(cai.updated_at, '%Y-%m-%d %H:%i:%s'))) AS medias,
-    IFNULL(GROUP_CONCAT(DISTINCT cat.name), '') AS tags,
+IFNULL((
+        SELECT JSON_ARRAYAGG(unique_tags.name) 
+        FROM (
+            SELECT DISTINCT cat.name 
+            FROM class_activity_tag_relation catr 
+            LEFT JOIN class_activity_tag cat ON cat.id = catr.fk_activity_tag 
+            WHERE catr.fk_class_activity = ca.id
+        ) AS unique_tags
+    ),
+    JSON_ARRAY()
+) AS tags,
     IFNULL(GROUP_CONCAT(DISTINCT lp.label), '') AS lesson_plans
 FROM 
     class_activity ca
@@ -38,3 +48,4 @@ WHERE
 GROUP BY 
     ca.id, ca.title, ca.description, ca.interpretation, ca.link, ca.status, 
     ca.published_at, ca.created_at, ca.updated_at, ca.display_date;
+ 

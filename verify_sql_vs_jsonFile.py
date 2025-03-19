@@ -87,8 +87,45 @@ columns_to_compare = [
 ]
 
 # ✅ Step 7: Create status columns
+# Define function outside the loop
+from datetime import datetime
+import json
+import pandas as pd
+
+def normalize_value(value):
+    if pd.isna(value) or value in ["", "[]", "{}", None]:  
+        return None  # Treat all blanks as equivalent
+
+    # Convert datetime strings to a standard format
+    if isinstance(value, str):
+        try:
+            # Ensure ISO format is normalized (handles both "T" and "Z")
+            value = value.replace("T", " ").replace("Z", "")
+            return datetime.fromisoformat(value).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            pass  # Ignore if it's not a valid datetime string
+
+        try:
+            # Convert JSON-like strings to properly formatted JSON
+            parsed_value = json.loads(value)
+
+            # Ensure dictionaries are treated as lists for consistent comparison
+            if isinstance(parsed_value, dict):  
+                parsed_value = [parsed_value]  
+
+            return json.dumps(parsed_value, sort_keys=True)  # Normalize JSON format
+        except (json.JSONDecodeError, TypeError):
+            pass  
+
+    return value
+
+
+# Apply normalization and comparison
 for col in columns_to_compare:
-    df_merged[f"{col}_status"] = df_merged[f"{col}_sql"] == df_merged[f"{col}_json"]
+    df_merged[f"{col}_status"] = df_merged.apply(
+        lambda row: normalize_value(row[f"{col}_sql"]) == normalize_value(row[f"{col}_json"]),
+        axis=1
+    )
 
 # ✅ Step 8: Add Overall Status column
 status_columns = [f"{col}_status" for col in columns_to_compare]

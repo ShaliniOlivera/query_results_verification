@@ -48,7 +48,7 @@ for record in json_data:
         "created_at": record["created_at"],
         "updated_at": record["updated_at"],
         "display_date": record["display_date"],
-        "centres": json.dumps(record["centres"], sort_keys=True),
+        "centres": json.dumps(record["centres"], sort_keys=True),  # Normalize JSON structures
         "children": json.dumps(record.get("children", ""), sort_keys=True),
         "classes": json.dumps(record.get("classes", ""), sort_keys=True),
         "medias": json.dumps(record.get("medias", ""), sort_keys=True),
@@ -59,6 +59,11 @@ for record in json_data:
 df_json = pd.DataFrame(json_records)
 
 # ✅ Step 5: Merge SQL and JSON data on "id" to compare values
+df_sql["centres"] = df_sql["centres"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
+df_sql["children"] = df_sql["children"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
+df_sql["classes"] = df_sql["classes"].apply(lambda x: json.dumps(json.loads(x), sort_keys=True) if isinstance(x, str) else x)
+df_sql["medias"] = df_sql["medias"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
+
 def safe_json_parse(value):
     if isinstance(value, str):
         try:
@@ -67,17 +72,13 @@ def safe_json_parse(value):
             try:
                 return json.dumps(ast.literal_eval(value), sort_keys=True)
             except (ValueError, SyntaxError):
-                return json.dumps([])
+                return json.dumps([])  # Return an empty JSON array if parsing fails
     return value
 
-df_sql["centres"] = df_sql["centres"].apply(safe_json_parse)
-df_sql["children"] = df_sql["children"].apply(safe_json_parse)
-df_sql["classes"] = df_sql["classes"].apply(safe_json_parse)
-df_sql["medias"] = df_sql["medias"].apply(safe_json_parse)
 df_sql["tags"] = df_sql["tags"].apply(safe_json_parse)
-df_sql["lesson_plans"] = df_sql["lesson_plans"].apply(safe_json_parse)
+df_sql["lesson_plans"] = df_sql["lesson_plans"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
 
-df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="outer")
+df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="outer", indicator=True)
 
 # ✅ Step 6: Define the columns to compare
 columns_to_compare = [
@@ -86,40 +87,86 @@ columns_to_compare = [
 ]
 
 # ✅ Step 7: Create status columns
+# Define function outside the loop
+from datetime import datetime
+import json
+import pandas as pd
+
+def normalize_value(value):
+    if pd.isna(value) or value in ["", "[]", "{}", None]:  
+        return None  # Treat all blanks as equivalent
+
+    # Convert datetime strings to a standard format
+    if isinstance(value, str):
+        try:
+            # Ensure ISO format is normalized (handles both "T" and "Z")
+            value = value.replace("T", " ").replace("Z", "")
+            return datetime.fromisoformat(value).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            pass  # Ignore if it's not a valid datetime string
+
+        try:
+            # Convert JSON-like strings to properly formatted JSON
+            parsed_value = json.loads(value)
+
+            # Ensure dictionaries are treated as lists for consistent comparison
+            if isinstance(parsed_value, dict):  
+                parsed_value = [parsed_value]  
+
+            return json.dumps(parsed_value, sort_keys=True)  # Normalize JSON format
+        except (json.JSONDecodeError, TypeError):
+            pass  
+
+    return value
+
+
+# Apply normalization and comparison
 for col in columns_to_compare:
-    df_merged[f"{col}_status"] = df_merged[f"{col}_sql"] == df_merged[f"{col}_json"]
+    df_merged[f"{col}_status"] = df_merged.apply(
+        lambda row: normalize_value(row[f"{col}_sql"]) == normalize_value(row[f"{col}_json"]),
+        axis=1
+    )
 
 # ✅ Step 8: Add Overall Status column
 status_columns = [f"{col}_status" for col in columns_to_compare]
 df_merged["Overall Status"] = df_merged[status_columns].apply(lambda x: "Mismatch" if any(x != True) else "Match", axis=1)
 
-# ✅ Step 9: Rearrange columns for better readability
+# ✅ Step 9: Identify missing records
+df_missing_in_json = df_merged[df_merged["_merge"] == "left_only"].drop(columns=["_merge"])
+df_missing_in_sql = df_merged[df_merged["_merge"] == "right_only"].drop(columns=["_merge"])
+
+# ✅ Step 10: Rearrange columns for better readability
 ordered_columns = ["Overall Status", "id"]
+
 for col in columns_to_compare:
-    ordered_columns.append(f"{col}_status")
-    ordered_columns.append(f"{col}_sql")
-    ordered_columns.append(f"{col}_json")
+    ordered_columns.append(f"{col}_status")  # Status column
+    ordered_columns.append(f"{col}_sql")     # SQL value
+    ordered_columns.append(f"{col}_json")    # JSON value
 
 df_all_results = df_merged[ordered_columns]
 
-# ✅ Step 10: Save results to Excel with timestamped filename
+# ✅ Step 11: Save results to Excel with timestamped filename
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 output_xlsx = os.path.join(result_dir, f"verification_result_{timestamp}.xlsx")
 
 # Create the Excel writer
 with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
+    
     # First sheet: Processed file summary
     summary_df = pd.DataFrame({
         "File Name": [os.path.basename(sql_result_path)],
-        "Total Records Verified": [len(df_merged)],
-        "Mismatched Records": [df_merged["Overall Status"].eq("Mismatch").sum()],
-        "Matched Records": [df_merged["Overall Status"].eq("Match").sum()],
-        "Status": ["Mismatched" if df_merged["Overall Status"].eq("Mismatch").sum() > 0 else "Matched"],
+        "Status": ["Matched" if df_merged["Overall Status"].eq("Mismatch").sum() == 0 else "Mismatched"],
         "Execution Timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
     })
     summary_df.to_excel(writer, sheet_name="Processed", index=False)
 
-    # Second sheet: Detailed verification results (All records)
+    # Second sheet: Detailed verification results
     df_all_results.to_excel(writer, sheet_name="Verification Details", index=False)
+    
+    # Third sheet: Missing in JSON
+    df_missing_in_json.to_excel(writer, sheet_name="Missing in JSON", index=False)
+    
+    # Fourth sheet: Missing in SQL
+    df_missing_in_sql.to_excel(writer, sheet_name="Missing in SQL", index=False)
 
 print(f"✅ Verification completed. Results saved to: {output_xlsx}")
