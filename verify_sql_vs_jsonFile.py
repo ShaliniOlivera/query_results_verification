@@ -56,6 +56,7 @@ for record in json_data:
         "lesson_plans": json.dumps(record.get("lesson_plans", ""), sort_keys=True),
         "link": record.get("link", ""),
         "learning_goals": json.dumps(record.get("learning_goals", ""), sort_keys=True),
+        "development_and_learning_area": json.dumps(record.get("development_and_learning_area", ""), sort_keys=True),
     })
 df_json = pd.DataFrame(json_records)
 
@@ -81,13 +82,15 @@ def safe_json_parse(value):
 df_sql["tags"] = df_sql["tags"].apply(safe_json_parse)
 df_sql["lesson_plans"] = df_sql["lesson_plans"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
 df_sql["learning_goals"] = df_sql["learning_goals"].apply(safe_json_parse)
+df_sql["development_and_learning_area"] = df_sql["development_and_learning_area"].apply(safe_json_parse)
 
 df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="outer", indicator=True)
 
 # ✅ Step 6: Define the columns to compare
 columns_to_compare = [
     "title", "description", "interpretation", "status", "published_at", "created_at",
-    "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link","learning_goals"
+    "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link","learning_goals",
+    "development_and_learning_area"
 ]
 
 # ✅ Step 7: Create status columns
