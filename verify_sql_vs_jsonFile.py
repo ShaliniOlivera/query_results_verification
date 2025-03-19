@@ -48,13 +48,14 @@ for record in json_data:
         "created_at": record["created_at"],
         "updated_at": record["updated_at"],
         "display_date": record["display_date"],
-        "centres": json.dumps(record["centres"], sort_keys=True),  # Normalize JSON structures
+        "centres": json.dumps(record["centres"], sort_keys=True), 
         "children": json.dumps(record.get("children", ""), sort_keys=True),
         "classes": json.dumps(record.get("classes", ""), sort_keys=True),
         "medias": json.dumps(record.get("medias", ""), sort_keys=True),
         "tags": json.dumps(record.get("tags", ""), sort_keys=True),
         "lesson_plans": json.dumps(record.get("lesson_plans", ""), sort_keys=True),
         "link": record.get("link", ""),
+        "learning_goals": json.dumps(record.get("learning_goals", ""), sort_keys=True),
     })
 df_json = pd.DataFrame(json_records)
 
@@ -63,6 +64,8 @@ df_sql["centres"] = df_sql["centres"].apply(lambda x: json.dumps(eval(x), sort_k
 df_sql["children"] = df_sql["children"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
 df_sql["classes"] = df_sql["classes"].apply(lambda x: json.dumps(json.loads(x), sort_keys=True) if isinstance(x, str) else x)
 df_sql["medias"] = df_sql["medias"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
+
+
 
 def safe_json_parse(value):
     if isinstance(value, str):
@@ -77,13 +80,14 @@ def safe_json_parse(value):
 
 df_sql["tags"] = df_sql["tags"].apply(safe_json_parse)
 df_sql["lesson_plans"] = df_sql["lesson_plans"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
+df_sql["learning_goals"] = df_sql["learning_goals"].apply(safe_json_parse)
 
 df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="outer", indicator=True)
 
 # ✅ Step 6: Define the columns to compare
 columns_to_compare = [
     "title", "description", "interpretation", "status", "published_at", "created_at",
-    "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link"
+    "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link","learning_goals"
 ]
 
 # ✅ Step 7: Create status columns
