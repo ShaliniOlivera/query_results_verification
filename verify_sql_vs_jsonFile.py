@@ -37,7 +37,25 @@ with open(json_file_path, "r", encoding="utf-8") as f:
 
 # Convert JSON to DataFrame
 json_records = []
-for record in json_data:  
+for record in json_data:
+    # Rearrange 'medias' field to ensure the order: type, source_path, display_order, created_at, updated_at
+    medias = record.get("medias", [])
+    
+    # Sort medias by 'display_order'
+    sorted_medias = sorted(medias, key=lambda x: x["display_order"])
+
+    rearranged_medias = []
+    for media in sorted_medias:  # Use sorted medias here
+        rearranged_media = {
+            "type": media["type"],
+            "source_path": media["source_path"],
+            "display_order": media["display_order"],
+            "created_at": media["created_at"],
+            "updated_at": media["updated_at"]
+        }
+        rearranged_medias.append(rearranged_media)
+    
+    # Append the rearranged 'medias' along with other fields to json_records
     json_records.append({
         "id": record["id"],
         "title": record["title"],
@@ -51,13 +69,14 @@ for record in json_data:
         "centres": json.dumps(record["centres"], sort_keys=True), 
         "children": json.dumps(record.get("children", ""), sort_keys=True),
         "classes": json.dumps(record.get("classes", ""), sort_keys=True),
-        "medias": json.dumps(record.get("medias", ""), sort_keys=True),
+        "medias": json.dumps(rearranged_medias, sort_keys=True),  # Use sorted 'medias'
         "tags": json.dumps(record.get("tags", ""), sort_keys=True),
         "lesson_plans": json.dumps(record.get("lesson_plans", ""), sort_keys=True),
         "link": record.get("link", ""),
         "learning_goals": json.dumps(record.get("learning_goals", ""), sort_keys=True),
         "development_and_learning_area": json.dumps(record.get("development_and_learning_area", ""), sort_keys=True),
     })
+
 df_json = pd.DataFrame(json_records)
 
 # ✅ Step 5: Merge SQL and JSON data on "id" to compare values
@@ -65,8 +84,6 @@ df_sql["centres"] = df_sql["centres"].apply(lambda x: json.dumps(eval(x), sort_k
 df_sql["children"] = df_sql["children"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
 df_sql["classes"] = df_sql["classes"].apply(lambda x: json.dumps(json.loads(x), sort_keys=True) if isinstance(x, str) else x)
 df_sql["medias"] = df_sql["medias"].apply(lambda x: json.dumps(eval(x), sort_keys=True) if isinstance(x, str) else x)
-
-
 
 def safe_json_parse(value):
     if isinstance(value, str):
@@ -100,8 +117,8 @@ import json
 import pandas as pd
 
 def normalize_value(value):
-    if pd.isna(value) or value in ["", "[]", "{}", None]:  
-        return None  # Treat all blanks as equivalent
+    if pd.isna(value) or value in ["", "[]", "{}", None]:
+        return None  # Treat blanks as equivalent
 
     # Convert datetime strings to a standard format
     if isinstance(value, str):
@@ -116,15 +133,22 @@ def normalize_value(value):
             # Convert JSON-like strings to properly formatted JSON
             parsed_value = json.loads(value)
 
-            # Ensure dictionaries are treated as lists for consistent comparison
-            if isinstance(parsed_value, dict):  
-                parsed_value = [parsed_value]  
+            # If the parsed value is a dictionary, wrap it in a list for uniformity
+            if isinstance(parsed_value, dict):
+                parsed_value = [parsed_value]
+
+            # Ensure unordered dictionaries or lists are sorted
+            if isinstance(parsed_value, dict):
+                parsed_value = {key: parsed_value[key] for key in sorted(parsed_value.keys())}
+            elif isinstance(parsed_value, list):
+                parsed_value = sorted(parsed_value, key=lambda x: json.dumps(x, sort_keys=True))
 
             return json.dumps(parsed_value, sort_keys=True)  # Normalize JSON format
         except (json.JSONDecodeError, TypeError):
-            pass  
+            pass  # Ignore if it's not a valid JSON string
 
     return value
+
 
 
 # Apply normalization and comparison

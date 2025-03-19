@@ -85,6 +85,13 @@ try:
                 if row_count > 0:
                     columns = [desc[0] for desc in cursor.description]
                     df_sql = pd.DataFrame(result, columns=columns)
+
+                    # Step 5: Ensure display_order is treated as numeric
+                    if 'display_order' in df_sql.columns:
+                        df_sql['display_order'] = pd.to_numeric(df_sql['display_order'], errors='coerce')  # Ensure it's numeric
+                        df_sql = df_sql.sort_values(by='display_order', ascending=True).reset_index(drop=True)
+                        print(f"📊 Sorted the data based on 'display_order'")
+
                     print(f"📊 Saving {row_count} rows to CSV...")
                 else:
                     df_sql = pd.DataFrame()  # Create empty DataFrame
@@ -93,10 +100,10 @@ try:
                 print(f"❌ Query execution failed: {e}")
                 df_sql = pd.DataFrame()  # Ensure a DataFrame is always created
 
-        # Step 5: Ensure result directory exists
+        # Step 6: Ensure result directory exists
         os.makedirs(result_dir, exist_ok=True)
 
-        # Step 6: Save query result to CSV with timestamp
+        # Step 7: Save query result to CSV with timestamp
         df_sql.to_csv(output_file, index=False)
         print(f"✅ Query result saved to: {output_file}")
 
