@@ -195,5 +195,11 @@ columns_to_verify = {
     ('qa_staff.sql','dev_staff.sql'):[
         "id", "staff_id", "email", "firstname", "lastname", "display_name", "mobile_phone", "profile_photo_storage_path",
         "role", "centre_codes", "class_ids", "created_at", "updated_at"
+    ],
+    
+    #child documents
+    ('qa_child_document.sql','dev_child_document.sql'):[
+        "id", "fullname", "birth_certificate", "dt_id", "document_category", "document_label", "document_filename", 
+        "document_source_path", "document_owner", "uploaded_by", "created_at", "updated_at", "giro_account_id", "giro_account_reference_number"
     ]
 }

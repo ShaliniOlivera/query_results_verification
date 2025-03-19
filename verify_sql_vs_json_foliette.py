@@ -143,15 +143,15 @@ def normalize_value(value):
             elif isinstance(parsed_value, list):
                 parsed_value = sorted(parsed_value, key=lambda x: json.dumps(x, sort_keys=True))
 
-            return json.dumps(parsed_value, sort_keys=True)  # Normalize JSON format
+            return json.dumps(parsed_value, sort_keys=True)  
         except (json.JSONDecodeError, TypeError):
-            pass  # Ignore if it's not a valid JSON string
+            pass
 
     return value
 
 
 
-# Apply normalization and comparison
+
 for col in columns_to_compare:
     df_merged[f"{col}_status"] = df_merged.apply(
         lambda row: normalize_value(row[f"{col}_sql"]) == normalize_value(row[f"{col}_json"]),

@@ -1,4 +1,4 @@
-#handling duplicate IDs and those queries without created_at
+
 import pandas as pd
 import mysql.connector
 import os
@@ -39,7 +39,8 @@ sql_files = [
     # ('qa_soa.sql','dev_soa.sql'),
     #('qa_child_soa.sql','dev_child_soa.sql'),
     #('qa_child_deposit.sql','dev_child_deposit.sql'),
-    ('qa_staff.sql','dev_staff.sql')
+    #('qa_staff.sql','dev_staff.sql'),
+    ('qa_child_document.sql','dev_child_document.sql')
 ]
 
 # Create a new workbook
