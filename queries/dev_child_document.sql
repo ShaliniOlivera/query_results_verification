@@ -1,8 +1,8 @@
-select ch.id, ch.fullname, ch.birth_certificate, 
+select ch.id as `id`, ch.fullname, ch.birth_certificate, 
     dtp.id AS dt_id,
     CASE
 		WHEN dtp.`label` LIKE '%Birth Certificate%' THEN 'birth_certificate'
-        WHEN dtp.`label` LIKE '%Immmunization%' OR dtp.`label` LIKE '%Immunisation%' THEN 'vaccination_immunisation_record'
+        WHEN dtp.`label` LIKE '%Immunization%' OR dtp.`label` LIKE '%Immunisation%' THEN 'vaccination_immunisation_record'
         WHEN dtp.`label` LIKE '%guardian%' AND dtp.`label` LIKE '%NRIC%' THEN 'ic_of_authorized_pickups'
         WHEN dtp.`label` LIKE '%NRIC%' AND dtp.`fk_registration_family_member` is null AND (dtp.`fk_parent` is not null or dtp.`fk_registration_parent` is not null or dtp.`fk_ecda_registration_parent` is not null) THEN 'parents_id'
         -- WHEN dtp.`label` LIKE '%Enrolment supporting documents%' OR dtp.`label` LIKE '%Enrollment supporting documents%' THEN 'Enrolment supporting documents'

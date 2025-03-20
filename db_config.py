@@ -13,7 +13,7 @@ ms_dev02 = {
     'port': 5031,
     'user': "skoolboy_dev",
     'password': "Hasd@2020",
-    'database': "sn2_class_ops_db_lsh_premium"
+    'database': "sn2_class_ops_lsh_premium"
 }
 
 def get_connection(env="ms_dev02"):

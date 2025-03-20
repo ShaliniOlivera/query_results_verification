@@ -4,7 +4,7 @@ SELECT DISTINCT
     ca.description,
     ca.interpretation,
     IFNULL(ca.link, '') AS link,
-    ca.final_status AS status,
+    ca.status AS status,
     ca.published_at,
     ca.created_at,
     ca.updated_at,
@@ -95,9 +95,9 @@ WHERE
     ca.type = "foliette"
     AND ca.active = 1
     AND (
-        (ca.final_status = "published" AND (ca.published_at >= '2025-01-01 00:00:00' OR ca.created_at >= '2025-01-01 00:00:00'))
+        (ca.status = "published" AND (ca.published_at >= '2025-01-01 00:00:00' OR ca.created_at >= '2025-01-01 00:00:00'))
         OR 
-        (ca.final_status IN ("approved", "pending") AND ca.created_at >= '2025-01-01 00:00:00')
+        (ca.status IN ("approved", "pending") AND ca.created_at >= '2025-01-01 00:00:00')
     )
 GROUP BY 
     ca.id, ca.title, ca.description, ca.interpretation, ca.link, ca.status, 
