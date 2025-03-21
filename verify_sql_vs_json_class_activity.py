@@ -4,9 +4,8 @@ import ast
 import pandas as pd
 import subprocess
 import time
-start_time = time.time()
 from datetime import datetime
-
+start_time = time.time()
 # Directories
 result_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/result_jsonQuery_verification"
 json_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/json_files"
@@ -212,8 +211,8 @@ for col in columns_to_compare:
 df_all_results = df_merged[ordered_columns]
 
 # ✅ Step 11: Save results to Excel with timestamped filename
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_xlsx = os.path.join(result_dir, f"verification_result_{timestamp}.xlsx")
+timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+output_xlsx = os.path.join(result_dir, f"Class activities verification_result_{timestamp}.xlsx")
 
 # Create the Excel writer
 with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
@@ -238,4 +237,4 @@ with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
 end_time = time.time()
 elapsed_time = end_time - start_time
 formatted_time = f"{int(elapsed_time // 60):02}:{int(elapsed_time % 60):02}"
-print(f"✅ Verification completed in {int(elapsed_time // 60)}m {int(elapsed_time % 60)}s. Results saved to: {output_xlsx}")
+print(f"✅ Class Activities verification completed in {int(elapsed_time // 60)}m {int(elapsed_time % 60)}s. Results saved to: {output_xlsx}")

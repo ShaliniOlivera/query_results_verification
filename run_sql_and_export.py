@@ -1,5 +1,5 @@
 import pymysql
-import pandas as pd
+import pandas as pd 
 import os
 import datetime
 from db_config import get_connection  # Import DB connection function
@@ -42,8 +42,8 @@ def check_and_create_procedure(cursor, conn, proc_name, proc_file, db_name):
 
 try:
     # Get DB connection
-    conn = get_connection(env="ms_dev02")  
-    db_name = "ms_dev02"  # Replace with your actual database name
+    conn = get_connection(env="dev1")  
+    db_name = "dev1"  # Replace with your actual database name
 
     with conn.cursor() as cursor:
         # Step 1: Ensure stored procedures exist

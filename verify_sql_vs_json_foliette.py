@@ -3,14 +3,17 @@ import json
 import ast
 import pandas as pd
 import subprocess
+import time
 from datetime import datetime
 
+
+start_time = time.time()
 # Directories
 result_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/result_jsonQuery_verification"
 json_dir = "/Users/shaliniolivera/Documents/Automation/LSH_Premium/json_files"
 
 # JSON file
-json_file = "lsh_premium_observation.json"
+json_file = "observation_20250320_1236.json"
 json_file_path = os.path.join(json_dir, json_file)
 
 # ✅ Step 1: Run SQL query to fetch latest results
@@ -18,7 +21,7 @@ print("🔄 Running SQL query to fetch latest results...")
 result = subprocess.run(["python3", "run_sql_and_export.py"], capture_output=True, text=True)
 output_lines = result.stdout.split("\n")
 
-# ✅ Step 2: Extract the latest output file from run_sql_and_export.py
+# ✅ Step 2: Extract the latest output file from run_sql_and_export.py 
 sql_result_path = None
 for line in output_lines:
     if "OUTPUT_FILE=" in line:
@@ -58,6 +61,7 @@ for record in json_data:
     # Append the rearranged 'medias' along with other fields to json_records
     json_records.append({
         "id": record["id"],
+        "type": record["type"],
         "title": record["title"],
         "description": record["description"],
         "interpretation": record.get("interpretation", ""),
@@ -105,7 +109,7 @@ df_merged = df_sql.merge(df_json, on="id", suffixes=("_sql", "_json"), how="oute
 
 # ✅ Step 6: Define the columns to compare
 columns_to_compare = [
-    "title", "description", "interpretation", "status", "published_at", "created_at",
+    "title", "type", "description", "interpretation", "status", "published_at", "created_at",
     "updated_at", "display_date", "centres", "children", "classes", "medias", "tags", "lesson_plans", "link","learning_goals",
     "development_and_learning_area"
 ]
@@ -177,8 +181,9 @@ for col in columns_to_compare:
 df_all_results = df_merged[ordered_columns]
 
 # ✅ Step 11: Save results to Excel with timestamped filename
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_xlsx = os.path.join(result_dir, f"verification_result_{timestamp}.xlsx")
+timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+output_xlsx = os.path.join(result_dir, f"Foliettes verification_result_{timestamp}.xlsx")
+
 
 # Create the Excel writer
 with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
@@ -200,4 +205,7 @@ with pd.ExcelWriter(output_xlsx, engine="xlsxwriter") as writer:
     # Fourth sheet: Missing in SQL
     df_missing_in_sql.to_excel(writer, sheet_name="Missing in SQL", index=False)
 
-print(f"✅ Verification completed. Results saved to: {output_xlsx}")
+end_time = time.time()
+elapsed_time = end_time - start_time
+formatted_time = f"{int(elapsed_time // 60):02}:{int(elapsed_time % 60):02}"
+print(f"✅ Foliettes verification completed in {int(elapsed_time // 60)}m {int(elapsed_time % 60)}s. Results saved to: {output_xlsx}")
