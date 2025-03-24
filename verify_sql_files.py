@@ -1,4 +1,3 @@
-
 import pandas as pd
 import mysql.connector
 import os
@@ -6,6 +5,9 @@ from openpyxl import Workbook
 from datetime import datetime
 from db_config import *
 from columns_config import columns_to_verify
+import time
+from datetime import datetime
+start_time = time.time()
 
 # Directories
 sql_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/queries'
@@ -13,33 +15,33 @@ result_dir = '/Users/shaliniolivera/Documents/Automation/LSH_Premium/result_quer
 
 # List of SQL query file names
 sql_files = [
-    # ('qa_child_details.sql', 'dev_child_profile.sql'),
-    # ('qa_parent_details.sql', 'dev_child_profile.sql'),
-    # ('qa_emergency_contact.sql', 'dev_child_profile.sql'),
-    # ('qa_doctor_details.sql', 'dev_child_profile.sql'),
-    # ('qa_immunization.sql', 'dev_child_profile.sql'),
-    # ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
-    # ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
-    # ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
-    # ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
-    #('qa_guardian_data.sql', 'dev_guardian_data.sql')
-    # ('qa_centre_data.sql', 'dev_centre_data.sql'),
-    # ('qa_discount_item.sql', 'dev_discount_item.sql'),
-    # ('qa_billable_item.sql', 'dev_billable_item.sql'),
-    # ('qa_child_level.sql', 'dev_child_level.sql'),
-    # ('qa_class_info.sql', 'dev_class_info.sql'),
-    # ('qa_child_class.sql', 'dev_child_class.sql'),
-    # ('qa_giro_account.sql','dev_giro_account.sql'),
-    # ('qa_discount_arrangement.sql','dev_discount_arrangement.sql'),
-    # ('qa_fee_tier.sql','dev_fee_tier.sql'),
-    # ('qa_invoice.sql','dev_invoice.sql'),
-    # ('qa_receipt.sql','dev_receipt.sql'),
-    # ('qa_refund.sql','dev_refund.sql'),
-    # ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
-    # ('qa_soa.sql','dev_soa.sql'),
-    #('qa_child_soa.sql','dev_child_soa.sql'),
-    #('qa_child_deposit.sql','dev_child_deposit.sql'),
-    #('qa_staff.sql','dev_staff.sql'),
+     ('qa_child_details.sql', 'dev_child_profile.sql'),
+     ('qa_parent_details.sql', 'dev_child_profile.sql'),
+    ('qa_emergency_contact.sql', 'dev_child_profile.sql'),
+    ('qa_doctor_details.sql', 'dev_child_profile.sql'),
+    ('qa_immunization.sql', 'dev_child_profile.sql'),
+    ('qa_physicalConditions.sql', 'dev_child_profile.sql'),
+    ('qa_specialNeeds.sql', 'dev_child_profile.sql'),
+    ('qa_foodAllergies.sql', 'dev_child_profile.sql'),
+    ('qa_nonFoodAllergies.sql', 'dev_child_profile.sql'),
+    ('qa_guardian_data.sql', 'dev_guardian_data.sql'),
+    ('qa_centre_data.sql', 'dev_centre_data.sql'),
+    ('qa_discount_item.sql', 'dev_discount_item.sql'),
+    ('qa_billable_item.sql', 'dev_billable_item.sql'),
+    ('qa_child_level.sql', 'dev_child_level.sql'),
+    ('qa_class_info.sql', 'dev_class_info.sql'),
+    ('qa_child_class.sql', 'dev_child_class.sql'),
+    ('qa_giro_account.sql','dev_giro_account.sql'),
+    ('qa_discount_arrangement.sql','dev_discount_arrangement.sql'),
+    ('qa_fee_tier.sql','dev_fee_tier.sql'),
+    ('qa_invoice.sql','dev_invoice.sql'),
+    ('qa_receipt.sql','dev_receipt.sql'),
+    ('qa_refund.sql','dev_refund.sql'),
+    ('qa_credit_debit_note.sql','dev_credit_debit_note.sql'),
+    ('qa_soa.sql','dev_soa.sql'),
+    ('qa_child_soa.sql','dev_child_soa.sql'),
+    ('qa_child_deposit.sql','dev_child_deposit.sql'),
+    ('qa_staff.sql','dev_staff.sql'),
     ('qa_child_document.sql','dev_child_document.sql')
 ]
 
@@ -157,4 +159,12 @@ wb.save(file_name)
 cursor.close()
 db_conn.close()
 
-print(f"✅ Comparison results saved to: {file_name}")
+end_time = time.time()
+elapsed_time = end_time - start_time
+formatted_time = f"{int(elapsed_time // 60):02}:{int(elapsed_time % 60):02}"
+verified_files = [f"{query1_file.replace('qa_', '').replace('dev_', '').replace('.sql', '')} vs {query2_file.replace('qa_', '').replace('dev_', '').replace('.sql', '')}" for query1_file, query2_file in sql_files]
+
+# Print completion message with formatted file names
+print(f"✅ SQL Files Verification Completed in {formatted_time} and saved to {file_name}.")
+print("🔍 Verified Files:")
+print("\n".join(verified_files))
