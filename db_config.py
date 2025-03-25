@@ -5,7 +5,7 @@ dev1 = {
     'port': 5005,
     'user': "skoolboy",
     'password': "skoolpass123456",
-    'database': "skoolnet2_uat"  #skoolnet2_uat_20250317
+    'database': "skoolnet2_uat_20250317"  #skoolnet2_uat_20250317
 }
 
 ms_dev02 = {

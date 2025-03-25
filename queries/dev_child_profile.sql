@@ -1,3 +1,4 @@
+
 select 
 	-- child_ec.`id` as ec_id, child_ec.`value` AS `ec_val`,
 	filtered_data.id, filtered_data.`child_firstname`, filtered_data.`child_lastname`, filtered_data.`child_birth_certificate`, 
@@ -9,12 +10,12 @@ select
     filtered_data.`parent_one_id`, filtered_data.`parent_one_relation`, filtered_data.`parent_one_firstname`, filtered_data.`parent_one_lastname`, filtered_data.`parent_one_nric`, filtered_data.`parent_one_email`,  filtered_data.`parent_one_mobile_number`, filtered_data.`parent_one_home_phone`,
     filtered_data.`parent_one_date_of_birth`, filtered_data.`parent_one_nationality`, filtered_data.`parent_one_race`, filtered_data.`parent_one_marital_status`, filtered_data.`parent_one_qualification`,
     -- filtered_data.`parent_one_occupation` AS `parent_one_occupation_org`, 
-	IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917, 331, 332, 333, 334,652) AND cde.`label` = filtered_data.`parent_one_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_one_occupation`) AS `parent_one_occupation`,
+	IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917, 331, 332, 333, 334, 652) AND cde.`label` = filtered_data.`parent_one_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_one_occupation`) AS `parent_one_occupation`,
     filtered_data.`parent_one_working_status`, filtered_data.`parent_one_workplace_association`, filtered_data.`parent_one_pr_commencement_date`, 
     filtered_data.`parent_two_id`, filtered_data.`parent_two_relation`, filtered_data.`parent_two_firstname`, filtered_data.`parent_two_lastname`, filtered_data.`parent_two_nric`, filtered_data.`parent_two_email`,  filtered_data.`parent_two_mobile_number`, filtered_data.`parent_two_home_phone`,
     filtered_data.`parent_two_date_of_birth`, filtered_data.`parent_two_nationality`, filtered_data.`parent_two_race`, filtered_data.`parent_two_marital_status`, filtered_data.`parent_two_qualification`,
     -- filtered_data.`parent_two_occupation` AS `parent_two_occupation_org`, 
-	IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917, 331, 332, 333, 334,652) AND cde.`label` = filtered_data.`parent_two_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_two_occupation`) AS `parent_two_occupation`,
+	IFNULL((select cde.`description` from `code` cde where cde.`fk_school` = 2 and cde.fk_code in (157, 4917, 331, 332, 333, 334, 652) AND cde.`label` = filtered_data.`parent_two_occupation` AND cde.`active` = 1 LIMIT 1), filtered_data.`parent_two_occupation`) AS `parent_two_occupation`,
     filtered_data.`parent_two_working_status`, filtered_data.`parent_two_pr_commencement_date`, 
     filtered_data.`address_postal_code`, filtered_data.`address_city`, filtered_data.`address_country`, filtered_data.`address_line_1`,filtered_data.`address_block`, filtered_data.`address_floor`, filtered_data.`address_unit_no`,
     IF(wd.`id` is not null, wd.`effective_date`, IF(tnr.`id` is not null AND tnr.destination_centre NOT in (1, 5, 10, 18, 16, 20), tnr.`effective_date`, '')) AS `withdrawal_effective_date`,
@@ -162,8 +163,20 @@ group by cl.fk_child
 		AND pr_father.`active` = 1
 	left outer join `user` usr_father ON usr_father.id = pr_father.fk_user
 		AND usr_father.`active` = 1
-	left outer join `address` adr_mother ON adr_mother.`fk_parent` = pr_mother.`id` and adr_mother.`active` = 1
-    left outer join `address` adr_father ON adr_father.`fk_parent` = pr_mother.`id` and adr_father.`active` = 1
+	-- left outer join `address` adr_mother ON adr_mother.`fk_parent` = pr_mother.`id` and adr_mother.`active` = 1
+    -- left outer join `address` adr_father ON adr_father.`fk_parent` = pr_mother.`id` and adr_father.`active` = 1
+    left outer join 
+		(
+        SELECT adr_filtered.* FROM 
+		(select adr1.`fk_parent`, MIN(adr1.`id`) as `adr_first_id` FROM `address` adr1 WHERE adr1.`active` = 1 GROUP BY adr1.`fk_parent`) adr
+			inner join `address` adr_filtered ON adr_filtered.`id` = adr.`adr_first_id`
+	) adr_mother ON adr_mother.`fk_parent` = pr_mother.`id` and adr_mother.`active` = 1
+    left outer join 
+		(
+        SELECT adr_filtered.* FROM 
+		(select adr1.`fk_parent`, MIN(adr1.`id`) as `adr_first_id` FROM `address` adr1 WHERE adr1.`active` = 1 GROUP BY adr1.`fk_parent`) adr
+			inner join `address` adr_filtered ON adr_filtered.`id` = adr.`adr_first_id`
+	) adr_father ON adr_father.`fk_parent` = pr_father.`id` and adr_father.`active` = 1
     left outer join `code` code_mother_workplace_staff ON code_mother_workplace_staff.`label` = pr_mother.`workplace_staff`
 		AND code_mother_workplace_staff.`fk_school` = 2
         AND code_mother_workplace_staff.`fk_code` = '3510'

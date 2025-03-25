@@ -9,7 +9,7 @@ SELECT DISTINCT
     gu.firstname AS guardian_firstname, 
     gu.lastname AS guardian_lastname, 
     gu.identification_no AS guardian_identification_no, 
-    gu.email AS guardian_email,
+    ifnull(gu.email,'') AS guardian_email,
     IF(gu.mobile_phone_country_code IS NULL OR gu.mobile_phone_country_code = '', '', gu.mobile_phone_country_code) AS guardian_mobile_phone_country_code,
     IF(gu.mobile_phone IS NULL OR gu.mobile_phone = '', '', gu.mobile_phone) AS guardian_mobile_phone,
     IF(gu.gender IS NULL OR gu.gender = '', '', gu.gender) AS guardian_gender,
