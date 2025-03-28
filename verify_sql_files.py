@@ -45,13 +45,11 @@ sql_files = [
     ('qa_child_document.sql','dev_child_document.sql')
 ]
 
-# Create a new workbook
 wb = Workbook()
 ws_processed = wb.active
 ws_processed.title = "Processed"
 ws_processed.append(["SQL Files Verified", "Status", "Mismatched Count", "Date Executed"])
 
-# Connect to MySQL database
 db_conn = mysql.connector.connect(**dev1)
 cursor = db_conn.cursor()
 
@@ -111,7 +109,7 @@ for query1_file, query2_file in sql_files:
     df2["Source"] = "Dev"
     all_records = pd.concat([df1, df2])
 
-    # Determine sorting columns dynamically
+    
     sort_columns = ["id"]
     if "created_at" in all_records.columns:
         sort_columns.append("created_at")
@@ -123,8 +121,6 @@ for query1_file, query2_file in sql_files:
     for id_value, group in grouped:
         qa_rows = group[group["Source"] == "QA"].drop(columns=["Source"], errors="ignore")
         dev_rows = group[group["Source"] == "Dev"].drop(columns=["Source"], errors="ignore")
-        
-        # Ensure sorting consistency for comparison
         qa_rows = qa_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
         dev_rows = dev_rows.sort_values(by=comparison_columns, ascending=True).reset_index(drop=True)
         
@@ -164,7 +160,6 @@ elapsed_time = end_time - start_time
 formatted_time = f"{int(elapsed_time // 60):02}:{int(elapsed_time % 60):02}"
 verified_files = [f"{query1_file.replace('qa_', '').replace('dev_', '').replace('.sql', '')} vs {query2_file.replace('qa_', '').replace('dev_', '').replace('.sql', '')}" for query1_file, query2_file in sql_files]
 
-# Print completion message with formatted file names
 print(f"✅ SQL Files Verification Completed in {formatted_time} and saved to {file_name}.")
 print("🔍 Verified Files:")
 print("\n".join(verified_files))
